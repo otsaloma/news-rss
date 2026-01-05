@@ -5,6 +5,7 @@ import Anthropic from 'https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.71.2/+es
 const PARAMS = new URLSearchParams(window.location.search);
 
 const FEEDS = [
+    "https://feeds.kauppalehti.fi/rss/main",
     "https://www.hs.fi/rss/teasers/etusivu.xml",
     "https://yle.fi/rss/uutiset/paauutiset",
 ];
@@ -143,8 +144,20 @@ function render(feeds) {
         const description = document.createElement("p");
         description.textContent = feed.description;
 
+        const meta = document.createElement("p");
+        meta.className = "meta";
+        const domain = new URL(feed.url).hostname.replace(/^www\./, "");
+        const date = new Date(feed.publishedAt);
+        const day = date.getDate();
+        const ordinal = ["th", "st", "nd", "rd"][(day % 10 > 3 || Math.floor(day / 10) === 1) ? 0 : day % 10];
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const hours = String(date.getHours()).padStart(2, "0");
+        const minutes = String(date.getMinutes()).padStart(2, "0");
+        meta.textContent = `${domain} ${day}${ordinal} ${monthNames[date.getMonth()]} ${hours}:${minutes}`;
+
         article.appendChild(title);
         article.appendChild(description);
+        article.appendChild(meta);
         grid.appendChild(article);
     });
 }
