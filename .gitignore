@@ -1,0 +1,10 @@
+.claude
+.env
+.envrc
+__pycache__
+html
+lambda
+lambda.zip
+requirements-lambda.txt
+response.txt
+venv
