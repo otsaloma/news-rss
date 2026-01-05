@@ -12,7 +12,6 @@ clean:
 	rm -rf lambda
 	rm -f lambda.zip
 	rm -f requirements-lambda.txt
-	rm -f response.txt
 
 # https://docs.aws.amazon.com/lambda/latest/dg/python-package.html
 # https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html#runtimes-supported

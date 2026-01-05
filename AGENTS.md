@@ -8,5 +8,6 @@ AGENTS.md
 * JavaScript is run as-is without any transpiling etc.
 * No frameworks!
 * Minimize the amount of libraries used
-* When loading, use spinner.css as instructed in the file
+* When loading content, use spinner.css as instructed in the file
 * Indent JavaScript with four spaces, HTML and CSS with two
+* Use double-quotes in JavaScript
