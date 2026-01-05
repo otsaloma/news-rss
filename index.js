@@ -142,6 +142,7 @@ function render(feeds) {
         title.appendChild(link);
 
         const description = document.createElement("p");
+        description.className = "description";
         description.textContent = feed.description;
 
         const meta = document.createElement("p");
@@ -153,7 +154,7 @@ function render(feeds) {
         const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         const hours = String(date.getHours()).padStart(2, "0");
         const minutes = String(date.getMinutes()).padStart(2, "0");
-        meta.textContent = `${domain} ${day}${ordinal} ${monthNames[date.getMonth()]} ${hours}:${minutes}`;
+        meta.textContent = `${domain} — ${day}. ${monthNames[date.getMonth()]} ${hours}:${minutes}`;
 
         article.appendChild(title);
         article.appendChild(description);

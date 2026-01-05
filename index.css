@@ -2,25 +2,25 @@
 
 :root {
   --color-background: white;
-  --color-link: #3b82f6;
   --color-text: #374151;
-  --font-family-serif: "EB Garamond", serif;
-  --font-family-sans-serif: sans-serif;
+  --font-family-sans-serif: Avenir Next, sans-serif;
+  --font-family-serif: EB Garamond, serif;
   --font-size-main: 16px;
 }
 
 html {
-  font-family: var(--font-family-serif);
+  font-family: var(--font-family-sans-serif);
   font-size: var(--font-size-main);
 }
 
 body {
   background-color: var(--color-background);
   color: var(--color-text);
-  font-family: var(--font-family-serif);
+  font-family: var(--font-family-sans-serif);
   font-size: var(--font-size-main);
-  line-height: 1.5em;
-  padding: 1rem 2rem;
+  line-height: 1.5;
+  margin: 0;
+  padding: 2.5rem 3rem;
   text-align: center;
   text-rendering: optimizeLegibility;
 }
@@ -32,34 +32,32 @@ a {
 
 #grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  grid-auto-rows: min-content;
+  gap: 2rem;
   grid-auto-flow: dense;
-  gap: 10px;
+  grid-auto-rows: min-content;
+  grid-template-columns: repeat(6, 1fr);
   text-align: left;
-}
-
-.article {
-  padding: 10px;
 }
 
 .article.size-1 { grid-column: span 1; }
 .article.size-2 { grid-column: span 2; }
 .article.size-3 { grid-column: span 3; }
 .article.size-4 { grid-column: span 4; }
+.article.size-5 { grid-column: span 5; }
+.article.size-6 { grid-column: span 6; }
 
 .article h2 {
+  font-family: var(--font-family-serif);
   margin: 0 0 0.5em 0;
 }
 
-.article p {
+.article .description {
   margin: 0.5em 0;
-  font-family: var(--font-family-sans-serif);
 }
 
-.meta {
+.article .meta {
+  font-size: 75%;
+  margin: 0.5em 0;
   opacity: 0.5;
   text-transform: uppercase;
-  font-family: var(--font-family-sans-serif);
-  font-size: 75%;
 }

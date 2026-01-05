@@ -2,7 +2,6 @@ TODO
 ====
 
 * Clean up generated code
-* Tweak CSS
 * Add spinner in initial loading
 * Make mobile view single column
 * Prefer non-paywalled of duplicates
