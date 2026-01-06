@@ -9,10 +9,17 @@
     <link rel="icon" href="favicon.svg?v=dev">
     <link rel="mask-icon" href="favicon-mask.svg?v=dev" color="#ffa348">
     <link rel="apple-touch-icon" href="apple-touch-icon.png?v=dev">
+    <link rel="stylesheet" href="spinner.css?v=dev">
     <link rel="stylesheet" href="index.css?v=dev">
   </head>
   <body>
     <main>
+      <div id="busy" class="hidden">
+        <div class="spinner">
+          <div class="double-bounce1"></div>
+          <div class="double-bounce2"></div>
+        </div>
+      </div>
       <div id="grid"></div>
     </main>
     <script src="https://unpkg.com/rss-parser@3.13.0/dist/rss-parser.min.js"></script>

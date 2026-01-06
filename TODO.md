@@ -1,9 +1,7 @@
 TODO
 ====
 
-* Add spinner in initial loading
 * Make mobile view single column
-* Prefer non-paywalled of duplicates
 * Store key and token in local storage
 * Easier initial setup than URL parameters?
 * Add vote buttons, save to local storage

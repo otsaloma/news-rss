@@ -30,6 +30,10 @@ a {
   text-decoration: none;
 }
 
+.hidden {
+  display: none;
+}
+
 #grid {
   display: grid;
   gap: 2rem;

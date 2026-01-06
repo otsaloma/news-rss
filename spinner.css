@@ -16,7 +16,7 @@
 .double-bounce1, .double-bounce2 {
   -webkit-animation: sk-bounce 2.0s infinite ease-in-out;
   animation: sk-bounce 2.0s infinite ease-in-out;
-  background-color: var(--default-color);
+  background-color: var(--color-text);
   border-radius: 50%;
   height: 100%;
   left: 0;

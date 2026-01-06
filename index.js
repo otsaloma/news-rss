@@ -169,6 +169,8 @@ function main() {
         console.log(articles);
         render(articles);
     } else {
+        const busy = document.getElementById("busy");
+        busy.classList.toggle("hidden", false);
         const feeds = FEEDS.map(getFeedUrl);
         Promise.all(feeds.map(url => fetch(url).then(response => response.text())))
             .then(texts => parse(texts))
@@ -181,6 +183,7 @@ function main() {
                 sessionStorage.setItem("articles", JSON.stringify(articles));
                 console.log(articles);
                 render(articles);
+                busy.classList.toggle("hidden", true);
             });
     }
 }
