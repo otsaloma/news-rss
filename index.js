@@ -34,6 +34,14 @@ function parse(texts) {
     })).then(results => results.flat());
 }
 
+function filterByPublishedAt(articles) {
+    const now = Date.now();
+    return articles.filter(article => {
+        const date = new Date(article.publishedAt).getTime();
+        return (now - date) <= 24 * 60 * 60 * 1000;
+    });
+}
+
 function deduplicate(articles) {
     // Deduplicate articles to include only one source per event.
     if (articles.length < 2)
@@ -164,10 +172,12 @@ function main() {
         const feeds = FEEDS.map(getFeedUrl);
         Promise.all(feeds.map(url => fetch(url).then(response => response.text())))
             .then(texts => parse(texts))
+            .then(articles => filterByPublishedAt(articles))
             .then(articles => deduplicate(articles))
             .then(articles => score(articles))
             .then(articles => {
                 articles.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+                articles = articles.slice(0, 100);
                 sessionStorage.setItem("articles", JSON.stringify(articles));
                 console.log(articles);
                 render(articles);
