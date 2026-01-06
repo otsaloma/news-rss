@@ -3,12 +3,25 @@
 import Anthropic from "https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.71.2/+esm";
 
 const PARAMS = new URLSearchParams(window.location.search);
-const ANTHROPIC_API_KEY = PARAMS.get("key") || sessionStorage.getItem("key") || null;
 const PROXY = "https://ep3tfancwtwxecots3p6txr3ka0xfcrr.lambda-url.eu-north-1.on.aws/";
-const PROXY_TOKEN = PARAMS.get("token") || sessionStorage.getItem("token") || null;
 
-if (!ANTHROPIC_API_KEY) throw "Missing ANTHROPIC_API_KEY!";
-if (!PROXY_TOKEN) throw "Missing PROXY_TOKEN!";
+// Load needed key and token from URL parameters or local storage or prompt.
+let ANTHROPIC_API_KEY = PARAMS.get("key") || localStorage.getItem("ANTHROPIC_API_KEY");
+let PROXY_TOKEN = PARAMS.get("token") || localStorage.getItem("PROXY_TOKEN");
+
+if (!ANTHROPIC_API_KEY) {
+    const response = prompt("Anthropic API key:");
+    if (!response) throw "Missing ANTHROPIC_API_KEY!";
+    ANTHROPIC_API_KEY = response;
+    localStorage.setItem("ANTHROPIC_API_KEY", response);
+}
+
+if (!PROXY_TOKEN) {
+    const response = prompt("Proxy token:");
+    if (!response) throw "Missing PROXY_TOKEN!";
+    PROXY_TOKEN = response;
+    localStorage.setItem("PROXY_TOKEN", response);
+}
 
 const FEEDS = [
     "https://feeds.kauppalehti.fi/rss/main",
