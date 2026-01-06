@@ -3,8 +3,8 @@
 :root {
   --color-background: white;
   --color-text: #374151;
-  --font-family-sans-serif: Avenir Next, sans-serif;
-  --font-family-serif: EB Garamond, serif;
+  --font-family-sans-serif: Avenir Next, system-ui, sans-serif;
+  --font-family-serif: EB Garamond, Apple Garamond, serif;
   --font-size-main: 16px;
 }
 
