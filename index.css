@@ -43,13 +43,17 @@ a {
 .article.size-2 { grid-column: span 2; }
 .article.size-3 { grid-column: span 3; }
 .article.size-4 { grid-column: span 4; }
-.article.size-5 { grid-column: span 5; }
-.article.size-6 { grid-column: span 6; }
 
 .article h2 {
   font-family: var(--font-family-serif);
+  line-height: 1.15;
   margin: 0 0 0.5em 0;
 }
+
+.article.size-1 h2 { font-size: 16px; }
+.article.size-2 h2 { font-size: 26px; }
+.article.size-3 h2 { font-size: 36px; }
+.article.size-4 h2 { font-size: 46px; }
 
 .article .description {
   margin: 0.5em 0;
