@@ -93,6 +93,13 @@ function getVotes() {
     return JSON.parse(localStorage.getItem("votes") || "{}");
 }
 
+function showToast(message) {
+    let toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.classList.toggle("hidden", false);
+    setTimeout(() => toast.classList.toggle("hidden", true), 3000);
+}
+
 function score(articles) {
     // Assign an importance score (0–100) for each of articles.
     if (articles.length === 0)
@@ -163,11 +170,13 @@ function saveVote(article, value) {
 function upVote(event, article) {
     event.preventDefault();
     saveVote(article, 1);
+    showToast(`Upvoted “${article.title}”`);
 }
 
 function downVote(event, article) {
     event.preventDefault();
     saveVote(article, -1);
+    showToast(`Downvoted “${article.title}”`);
 }
 
 function render(articles) {
