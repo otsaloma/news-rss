@@ -89,6 +89,10 @@ Return only a JSON array of indices to keep, like: [0, 2, 5, 7]
     });
 }
 
+function getVotes() {
+    return JSON.parse(localStorage.getItem("votes") || "{}");
+}
+
 function score(articles) {
     // Assign an importance score (0–100) for each of articles.
     if (articles.length === 0)
@@ -96,10 +100,19 @@ function score(articles) {
     const dump = articles.map((article, i) =>
         `${i}. ${article.title} — ${article.description.slice(0, 100)} (Published: ${article.publishedAt})`
     ).join("\n");
+    const votes = getVotes();
+    const examples = Object.entries(votes).map(([key, value]) => {
+        const title = key.split(":", 2)[1];
+        const score = value > 0 ? "HIGH" : "LOW";
+        return `- "${title}" → ${score}`;
+    }).join("\n");
     const prompt = `
 You are given a list of news articles.
 Score the importance of each article with a value between 0–100.
 Date and time now is ${new Date().toISOString()}.
+General guidelines and previously rated articles below.
+When in conflict, prefer to follow previously rated articles.
+From the previously rated articles, try to infer the general abstract principles.
 
 General guidelines:
 - Favor broad impact (societal, political, economic)
@@ -110,6 +123,9 @@ General guidelines:
 - Disfavor empty speculation
 - Disfavor moralization
 - Disfavor victimization
+
+Examples of previously rated articles:
+${examples}
 
 Articles:
 ${dump}
@@ -132,14 +148,28 @@ Return only a JSON array of scores (0–100), one per article in order, like: [8
     });
 }
 
+function saveVote(article, value) {
+    const votes = getVotes();
+    const unixTime = Math.floor(Date.now() / 1000);
+    const key = `${unixTime}:${article.title}`;
+    console.log("Voting", key, value);
+    votes[key] = value;
+    // Keep only latest 100 votes.
+    const keys = Object.keys(votes)
+          .sort((a, b) => parseInt(b.split(":")[0]) - parseInt(a.split(":")[0]))
+          .slice(0, 100);
+    const filtered = Object.fromEntries(keys.map(x => [x, votes[x]]));
+    localStorage.setItem("votes", JSON.stringify(filtered));
+}
+
 function upVote(event, article) {
     event.preventDefault();
-    console.log("upVote", event, article);
+    saveVote(article, 1);
 }
 
 function downVote(event, article) {
     event.preventDefault();
-    console.log("downVote", event, article);
+    saveVote(article, -1);
 }
 
 function render(articles) {
@@ -213,6 +243,7 @@ function main() {
             .then(articles => deduplicate(articles))
             .then(articles => score(articles))
             .then(articles => {
+                articles = articles.filter(article => article.score >= 10);
                 articles.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
                 articles = articles.slice(0, 100);
                 sessionStorage.setItem("articles", JSON.stringify(articles));
