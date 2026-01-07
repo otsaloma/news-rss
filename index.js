@@ -101,10 +101,9 @@ function score(articles) {
         `${i}. ${article.title} — ${article.description.slice(0, 100)} (Published: ${article.publishedAt})`
     ).join("\n");
     const votes = getVotes();
-    const examples = Object.entries(votes).map(([key, value]) => {
-        const title = key.split(":", 2)[1];
-        const score = value > 0 ? "HIGH" : "LOW";
-        return `- "${title}" → ${score}`;
+    const examples = Object.values(votes).map(vote => {
+        const score = vote.vote > 0 ? "HIGH" : "LOW";
+        return `- "${vote.title}" → ${score}`;
     }).join("\n");
     const prompt = `
 You are given a list of news articles.
@@ -150,15 +149,14 @@ Return only a JSON array of scores (0–100), one per article in order, like: [8
 
 function saveVote(article, value) {
     const votes = getVotes();
-    const unixTime = Math.floor(Date.now() / 1000);
-    const key = `${unixTime}:${article.title}`;
-    console.log("Voting", key, value);
-    votes[key] = value;
+    const votedAt = Math.floor(Date.now() / 1000);
+    console.log("Voting", article.url, value);
+    votes[article.url] = {title: article.title, vote: value, votedAt: votedAt};
     // Keep only latest 100 votes.
-    const keys = Object.keys(votes)
-          .sort((a, b) => parseInt(b.split(":")[0]) - parseInt(a.split(":")[0]))
+    const entries = Object.entries(votes)
+          .sort((a, b) => b[1].votedAt - a[1].votedAt)
           .slice(0, 100);
-    const filtered = Object.fromEntries(keys.map(x => [x, votes[x]]));
+    const filtered = Object.fromEntries(entries);
     localStorage.setItem("votes", JSON.stringify(filtered));
 }
 
