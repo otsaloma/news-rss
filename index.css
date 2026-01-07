@@ -65,7 +65,12 @@ a {
 
 .article .meta {
   font-size: 75%;
-  margin: 0.5em 0;
+  /* -3px on account of the button padding below. */
+  margin: 0.5em 0 0.5em -3px;
   opacity: 0.5;
   text-transform: uppercase;
+}
+
+.article .meta a[role="button"] {
+  padding: 3px;
 }

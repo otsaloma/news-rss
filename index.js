@@ -132,6 +132,16 @@ Return only a JSON array of scores (0–100), one per article in order, like: [8
     });
 }
 
+function upVote(event, article) {
+    event.preventDefault();
+    console.log("upVote", event, article);
+}
+
+function downVote(event, article) {
+    event.preventDefault();
+    console.log("downVote", event, article);
+}
+
 function render(articles) {
     // Render articles in grid like a newspaper front page.
     const grid = document.getElementById("grid");
@@ -153,13 +163,25 @@ function render(articles) {
         description.textContent = article.description;
         const meta = document.createElement("p");
         meta.className = "meta";
+        const upButton = document.createElement("a");
+        upButton.href = "#";
+        upButton.role = "button";
+        upButton.textContent = "▲";
+        upButton.addEventListener("click", (event) => upVote(event, article));
+        const downButton = document.createElement("a");
+        downButton.href = "#";
+        downButton.role = "button";
+        downButton.textContent = "▼";
+        downButton.addEventListener("click", (event) => downVote(event, article));
         const site = new URL(article.url).hostname.split(".").slice(-2, -1)[0];
         const date = new Date(article.publishedAt);
         const day = date.getDate();
         const monthNames = ["tammi", "helmi", "maalis", "huhti", "touko", "kesä", "heinä", "elo", "syys", "loka", "marras", "joulu"];
         const month = monthNames[date.getMonth()];
         const time = date.toTimeString().slice(0, 5);
-        meta.textContent = `${site} — ${day}. ${month} ${time}`;
+        meta.appendChild(upButton);
+        meta.appendChild(document.createTextNode(` ${site} — ${day}. ${month} ${time} `));
+        meta.appendChild(downButton);
         cell.appendChild(title);
         cell.appendChild(description);
         cell.appendChild(meta);
