@@ -71,7 +71,9 @@ Of duplicates, prefer to keep articles from known free of charge, public service
 Articles:
 ${dump}
 
-Return only a JSON array of indices to keep, like: [0, 2, 5, 7]
+ONLY RETURN A JSON ARRAY OF INDICES TO KEEP.
+YOU ARE NOT ALLOWED TO RETURN ANYTHING ELSE.
+EXAMPLE: [0, 2, 5, 7]
 `.trim();
     console.log(prompt);
     const client = new Anthropic({
@@ -79,11 +81,12 @@ Return only a JSON array of indices to keep, like: [0, 2, 5, 7]
         dangerouslyAllowBrowser: true
     });
     return client.messages.create({
-        model: "claude-haiku-4-5",
+        model: "claude-sonnet-4-5",
         max_tokens: 1024,
         messages: [{role: "user", content: prompt}],
     }).then(data => {
         const content = data.content[0].text.trim();
+        console.log(content);
         const keep = JSON.parse(content.match(/\[[\d,\s]+\]/)[0]);
         return keep.map(i => articles[i]);
     });
@@ -119,6 +122,8 @@ Date and time now is ${new Date().toISOString()}.
 General guidelines and previously rated articles below.
 When in conflict, prefer to follow previously rated articles.
 From the previously rated articles, try to infer the general abstract principles.
+A near-exact match of previously rated high should result in a score between 75–100.
+A near-exact match of previously rated low should result in a score between 0–25.
 
 General guidelines:
 - Favor broad impact (societal, political, economic)
@@ -136,7 +141,9 @@ ${examples}
 Articles:
 ${dump}
 
-Return only a JSON array of scores (0–100), one per article in order, like: [85, 72, 91, 45]
+ONLY RETURN A JSON ARRAY OF SCORES (0–100), ONE PER ARTICLE IN ORDER.
+YOU ARE NOT ALLOWED TO RETURN ANYTHING ELSE.
+EXAMPLE: [85, 72, 91, 45]
 `.trim();
     console.log(prompt);
     const client = new Anthropic({
@@ -144,11 +151,12 @@ Return only a JSON array of scores (0–100), one per article in order, like: [8
         dangerouslyAllowBrowser: true
     });
     return client.messages.create({
-        model: "claude-haiku-4-5",
+        model: "claude-sonnet-4-5",
         max_tokens: 1024,
         messages: [{role: "user", content: prompt}]
     }).then(data => {
         const content = data.content[0].text.trim();
+        console.log(content);
         const scores = JSON.parse(content.match(/\[[\d,\s]+\]/)[0]);
         return articles.map((feed, i) => ({...feed, score: scores[i] || 50}));
     });
@@ -212,12 +220,9 @@ function render(articles) {
         downButton.addEventListener("click", (event) => downVote(event, article));
         const site = new URL(article.url).hostname.split(".").slice(-2, -1)[0];
         const date = new Date(article.publishedAt);
-        const day = date.getDate();
-        const monthNames = ["tammi", "helmi", "maalis", "huhti", "touko", "kesä", "heinä", "elo", "syys", "loka", "marras", "joulu"];
-        const month = monthNames[date.getMonth()];
         const time = date.toTimeString().slice(0, 5);
         meta.appendChild(upButton);
-        meta.appendChild(document.createTextNode(` ${site} — ${day}. ${month} ${time} `));
+        meta.appendChild(document.createTextNode(` ${site} ${time} @ ${article.score}`));
         meta.appendChild(downButton);
         cell.appendChild(title);
         cell.appendChild(description);
@@ -250,7 +255,7 @@ function main() {
             .then(articles => deduplicate(articles))
             .then(articles => score(articles))
             .then(articles => {
-                articles = articles.filter(article => article.score >= 10);
+                articles = articles.filter(article => article.score >= 20);
                 articles.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
                 articles = articles.slice(0, 100);
                 sessionStorage.setItem("articles", JSON.stringify(articles));
