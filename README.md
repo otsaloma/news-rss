@@ -11,7 +11,11 @@ persists in local storage and is rendered as few-shot examples in the
 LLM prompt to affect subsequent article filtering and scoring. There is
 no backend. There is no state apart from local storage in the browser.
 
+Articles in order of recency, size scaled by score:
 ![screenshot](screenshot.png)
+
+Low score articles behind a toggle, hidden by default:
+![screenshot](screenshot-hidden.png)
 
 ## Getting Started
 
