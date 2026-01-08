@@ -113,7 +113,7 @@ function score(articles) {
     const votes = getVotes();
     const examples = Object.values(votes).map(vote => {
         const score = vote.vote > 0 ? "HIGH" : "LOW";
-        return `- "${vote.title}" → ${score}`;
+        return `- ${vote.title} — ${vote.description.slice(0, 100)} → ${score}`;
     }).join("\n");
     const prompt = `
 You are given a list of news articles.
@@ -122,8 +122,8 @@ Date and time now is ${new Date().toISOString()}.
 General guidelines and previously rated articles below.
 When in conflict, prefer to follow previously rated articles.
 From the previously rated articles, try to infer the general abstract principles.
-A near-exact match of previously rated high should result in a score between 75–100.
-A near-exact match of previously rated low should result in a score between 0–25.
+A near-exact match of previously rated high should result in a score between 85–100.
+A near-exact match of previously rated low should result in a score between 0–15.
 
 General guidelines:
 - Favor broad impact (societal, political, economic)
@@ -166,11 +166,16 @@ function saveVote(article, value) {
     const votes = getVotes();
     const votedAt = Math.floor(Date.now() / 1000);
     console.log("Voting", article.url, value);
-    votes[article.url] = {title: article.title, vote: value, votedAt: votedAt};
-    // Keep only latest 100 votes.
+    votes[article.url] = {
+        title: article.title,
+        description: article.description,
+        vote: value,
+        votedAt: votedAt,
+    };
+    // Keep only latest 200 votes.
     const entries = Object.entries(votes)
           .sort((a, b) => b[1].votedAt - a[1].votedAt)
-          .slice(0, 100);
+          .slice(0, 200);
     const filtered = Object.fromEntries(entries);
     localStorage.setItem("votes", JSON.stringify(filtered));
 }
@@ -193,7 +198,7 @@ function render(articles) {
     grid.innerHTML = "";
     articles.forEach(article => {
         // Map score 0–100 to size 1–4 (column span).
-        const size = Math.ceil(article.score / 25);
+        const size = Math.max(1, Math.floor(article.score / 20));
         const cell = document.createElement("div");
         cell.className = "article";
         cell.classList.add(`size-${size}`);
@@ -222,7 +227,7 @@ function render(articles) {
         const date = new Date(article.publishedAt);
         const time = date.toTimeString().slice(0, 5);
         meta.appendChild(upButton);
-        meta.appendChild(document.createTextNode(` ${site} ${time} @ ${article.score}`));
+        meta.appendChild(document.createTextNode(` ${site} ${time} → ${article.score}`));
         meta.appendChild(downButton);
         cell.appendChild(title);
         cell.appendChild(description);
