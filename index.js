@@ -192,16 +192,16 @@ function downVote(event, article) {
     showToast(`Downvoted “${article.title}”`);
 }
 
-function render(articles) {
+function render(articles, gridElement, dimmed = false) {
     // Render articles in grid like a newspaper front page.
-    const grid = document.getElementById("grid");
-    grid.innerHTML = "";
+    gridElement.innerHTML = "";
     articles.forEach(article => {
         // Map score 0–100 to size 1–4 (column span).
         const size = Math.max(1, Math.floor(article.score / 20));
         const cell = document.createElement("div");
         cell.className = "article";
         cell.classList.add(`size-${size}`);
+        if (dimmed) cell.classList.add("dimmed");
         const title = document.createElement("h2");
         const link = document.createElement("a");
         link.href = article.url;
@@ -232,8 +232,16 @@ function render(articles) {
         cell.appendChild(title);
         cell.appendChild(description);
         cell.appendChild(meta);
-        grid.appendChild(cell);
+        gridElement.appendChild(cell);
     });
+}
+
+function renderAll(articles) {
+    const visible = articles.filter(a => a.score >= 20);
+    const hidden = articles.filter(a => a.score < 20);
+    render(visible, document.getElementById("grid"), false);
+    render(hidden, document.getElementById("hidden-grid"), true);
+    document.getElementById("toggle-hidden").classList.toggle("hidden", hidden.length === 0);
 }
 
 function getFeedUrl(url) {
@@ -249,7 +257,7 @@ function main() {
         console.log("Loading articles from cache...");
         const articles = JSON.parse(cached);
         console.log(articles);
-        render(articles);
+        renderAll(articles);
     } else {
         const busy = document.getElementById("busy");
         busy.classList.toggle("hidden", false);
@@ -260,17 +268,23 @@ function main() {
             .then(articles => deduplicate(articles))
             .then(articles => score(articles))
             .then(articles => {
-                articles = articles.filter(article => article.score >= 20);
                 articles.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
                 articles = articles.slice(0, 100);
                 sessionStorage.setItem("articles", JSON.stringify(articles));
                 console.log(articles);
-                render(articles);
+                renderAll(articles);
                 busy.classList.toggle("hidden", true);
             });
     }
 }
 
 (function() {
+    document.getElementById("toggle-hidden").addEventListener("click", (event) => {
+        event.preventDefault();
+        const hiddenGrid = document.getElementById("hidden-grid");
+        const link = event.target;
+        hiddenGrid.classList.toggle("hidden");
+        link.textContent = hiddenGrid.classList.contains("hidden") ? "show hidden" : "hide hidden";
+    });
     main();
 })();

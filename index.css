@@ -31,7 +31,9 @@ a {
 }
 
 .hidden {
-  display: none;
+  height: 0;
+  opacity: 0;
+  overflow: hidden;
 }
 
 #toast {
@@ -91,4 +93,23 @@ a {
 
 .article .meta a[role="button"] {
   padding: 3px;
+}
+
+#toggle-hidden {
+  display: block;
+  margin: 2rem 0;
+}
+
+#hidden-grid {
+  display: grid;
+  gap: 2rem;
+  grid-auto-flow: dense;
+  grid-auto-rows: min-content;
+  grid-template-columns: repeat(6, 1fr);
+  text-align: left;
+}
+
+.article.dimmed h2,
+.article.dimmed .description {
+  opacity: 0.5;
 }
