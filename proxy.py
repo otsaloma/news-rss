@@ -4,6 +4,7 @@ import os
 import requests
 import sys
 
+HEADERS = {"Content-Type": "text/plain", "Cache-Control": "max-age=600"}
 TOKEN = os.environ["TOKEN"]
 
 def download(url):
@@ -11,14 +12,7 @@ def download(url):
     return response.text.strip() if response.ok else ""
 
 def response(status_code, body):
-    return {
-        "statusCode": status_code,
-        "headers": {
-            "Cache-Control": "max-age=600",
-            "Content-Type": "text/plain",
-        },
-        "body": body,
-    }
+    return {"statusCode": status_code, "headers": HEADERS, "body": body}
 
 def lambda_handler(event, context):
     params = event.get("queryStringParameters", {})

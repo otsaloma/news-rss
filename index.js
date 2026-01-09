@@ -29,6 +29,10 @@ const FEEDS = [
     "https://yle.fi/rss/uutiset/paauutiset",
 ];
 
+// TODO: Allow override by URL parameters.
+const ARTICLE_MAX_AGE = 86400;
+const VOTES_MAX_COUNT = 500;
+
 function parse(texts) {
     // Parse feed texts to a single list of articles.
     return Promise.all(texts.map(text => {
@@ -37,21 +41,19 @@ function parse(texts) {
             .then(feed => feed.items.map(item => ({
                 title: (item.title || "").split("|").pop().trim(),
                 description: item.contentSnippet || "",
+                descriptionShort: (item.contentSnippet || "").split(/[^A-ZÅÄÖ][.!?] /)[0],
                 url: item.link || "",
+                host: new URL(item.link || "").hostname,
+                site: new URL(item.link || "").hostname.split(".").slice(-2, -1)[0],
                 publishedAt: item.isoDate || "",
-            })))
-            .catch(error => {
-                console.error("Failed to parse feed:", error);
-                return [];
-            });
+            })));
     })).then(results => results.flat());
 }
 
 function filterByPublishedAt(articles) {
-    const now = Date.now();
     return articles.filter(article => {
         const date = new Date(article.publishedAt).getTime();
-        return (now - date) <= 24 * 60 * 60 * 1000;
+        return (Date.now() - date) <= ARTICLE_MAX_AGE * 1000;
     });
 }
 
@@ -60,19 +62,20 @@ function deduplicate(articles) {
     if (articles.length < 2)
         return Promise.resolve(articles);
     const dump = articles.map((article, i) =>
-        `${i}. ${article.title} — ${article.description.slice(0, 100)}`
+        `${i}. ${article.title} — ${article.descriptionShort} (${article.host})`
     ).join("\n");
     const prompt = `
 You are given a list of news articles.
 Identify which articles are about the same news event/story (duplicates).
 Return a JSON array of indices to KEEP (one article from each group of duplicates).
-Of duplicates, prefer to keep articles from known free of charge, public services such as yle.fi.
+Of duplicates, prefer to keep articles from known free public services such as yle.fi.
 
 Articles:
 ${dump}
 
-ONLY RETURN A JSON ARRAY OF INDICES TO KEEP.
-YOU ARE NOT ALLOWED TO RETURN ANYTHING ELSE.
+THINK STEP BY STEP AND BRIEFLY STATE YOUR REASONING.
+THEN ON YOUR FINAL LINE, RETURN A JSON ARRAY OF INDICES TO KEEP.
+YOU ARE NOT ALLOWED TO OMIT THE FINAL JSON ARRAY.
 EXAMPLE: [0, 2, 5, 7]
 `.trim();
     console.log(prompt);
@@ -81,13 +84,14 @@ EXAMPLE: [0, 2, 5, 7]
         dangerouslyAllowBrowser: true
     });
     return client.messages.create({
-        model: "claude-sonnet-4-5",
-        max_tokens: 1024,
+        model: "claude-opus-4-5",
+        max_tokens: 5000,
         messages: [{role: "user", content: prompt}],
     }).then(data => {
         const content = data.content[0].text.trim();
         console.log(content);
-        const keep = JSON.parse(content.match(/\[[\d,\s]+\]/)[0]);
+        const matches = [...content.matchAll(/\[[\d,\s]+\]/g)];
+        const keep = JSON.parse(matches[matches.length-1]);
         return keep.map(i => articles[i]);
     });
 }
@@ -96,11 +100,11 @@ function getVotes() {
     return JSON.parse(localStorage.getItem("votes") || "{}");
 }
 
-function showToast(message) {
+function notify(message) {
     let toast = document.getElementById("toast");
     toast.textContent = message;
     toast.classList.toggle("hidden", false);
-    setTimeout(() => toast.classList.toggle("hidden", true), 3000);
+    setTimeout(() => toast.classList.toggle("hidden", true), 2000);
 }
 
 function score(articles) {
@@ -108,32 +112,27 @@ function score(articles) {
     if (articles.length === 0)
         return Promise.resolve(articles);
     const dump = articles.map((article, i) =>
-        `${i}. ${article.title} — ${article.description.slice(0, 100)} (Published: ${article.publishedAt})`
+        `${i}. ${article.title} — ${article.descriptionShort}`
     ).join("\n");
     const votes = getVotes();
     const examples = Object.values(votes).map(vote => {
-        const score = vote.vote > 0 ? "HIGH" : "LOW";
-        return `- ${vote.title} — ${vote.description.slice(0, 100)} → ${score}`;
+        const score = vote.vote > 0 ? 90 : 10;
+        return `- ${vote.title} — ${vote.descriptionShort} → ${score}`;
     }).join("\n");
     const prompt = `
 You are given a list of news articles.
 Score the importance of each article with a value between 0–100.
-Date and time now is ${new Date().toISOString()}.
+Use the full range 0–100 in about a uniform distribution.
 General guidelines and previously rated articles below.
 When in conflict, prefer to follow previously rated articles.
 From the previously rated articles, try to infer the general abstract principles.
-A near-exact match of previously rated high should result in a score between 85–100.
-A near-exact match of previously rated low should result in a score between 0–15.
+Consider not only the topic of articles, but also viewpoint and tone.
 
 General guidelines:
 - Favor broad impact (societal, political, economic)
 - Favor intellectual curiosity
 - Favor promotion of understanding
-- Favor insightful commentary
-- Disfavor petty arguments
-- Disfavor empty speculation
-- Disfavor moralization
-- Disfavor victimization
+- Favor insightful commentary (editorials and letters from readers)
 
 Examples of previously rated articles:
 ${examples}
@@ -141,9 +140,10 @@ ${examples}
 Articles:
 ${dump}
 
-ONLY RETURN A JSON ARRAY OF SCORES (0–100), ONE PER ARTICLE IN ORDER.
-YOU ARE NOT ALLOWED TO RETURN ANYTHING ELSE.
-EXAMPLE: [85, 72, 91, 45]
+THINK STEP BY STEP AND BRIEFLY STATE YOUR REASONING.
+THEN ON YOUR FINAL LINE, RETURN A JSON ARRAY OF SCORES (0–100), ONE PER ARTICLE IN ORDER.
+YOU ARE NOT ALLOWED TO OMIT THE FINAL JSON ARRAY.
+EXAMPLE: [85, 17, 53, 41]
 `.trim();
     console.log(prompt);
     const client = new Anthropic({
@@ -151,13 +151,14 @@ EXAMPLE: [85, 72, 91, 45]
         dangerouslyAllowBrowser: true
     });
     return client.messages.create({
-        model: "claude-sonnet-4-5",
-        max_tokens: 1024,
+        model: "claude-opus-4-5",
+        max_tokens: 5000,
         messages: [{role: "user", content: prompt}]
     }).then(data => {
         const content = data.content[0].text.trim();
         console.log(content);
-        const scores = JSON.parse(content.match(/\[[\d,\s]+\]/)[0]);
+        const matches = [...content.matchAll(/\[[\d,\s]+\]/g)];
+        const scores = JSON.parse(matches[matches.length-1]);
         return articles.map((feed, i) => ({...feed, score: scores[i] || 50}));
     });
 }
@@ -166,16 +167,12 @@ function saveVote(article, value) {
     const votes = getVotes();
     const votedAt = Math.floor(Date.now() / 1000);
     console.log("Voting", article.url, value);
-    votes[article.url] = {
-        title: article.title,
-        description: article.description,
-        vote: value,
-        votedAt: votedAt,
-    };
-    // Keep only latest 200 votes.
+    votes[article.url] = {...article, vote: value, votedAt: votedAt};
+    // Drop the oldest votes to if VOTES_MAX_COUNT exceeded.
     const entries = Object.entries(votes)
           .sort((a, b) => b[1].votedAt - a[1].votedAt)
-          .slice(0, 200);
+          .slice(0, VOTES_MAX_COUNT);
+
     const filtered = Object.fromEntries(entries);
     localStorage.setItem("votes", JSON.stringify(filtered));
 }
@@ -183,25 +180,25 @@ function saveVote(article, value) {
 function upVote(event, article) {
     event.preventDefault();
     saveVote(article, 1);
-    showToast(`Upvoted “${article.title}”`);
+    notify(`Upvoted “${article.title}”`);
 }
 
 function downVote(event, article) {
     event.preventDefault();
     saveVote(article, -1);
-    showToast(`Downvoted “${article.title}”`);
+    notify(`Downvoted “${article.title}”`);
 }
 
-function render(articles, gridElement, dimmed = false) {
+function render(articles, grid, muted=false) {
     // Render articles in grid like a newspaper front page.
-    gridElement.innerHTML = "";
+    grid.innerHTML = "";
     articles.forEach(article => {
         // Map score 0–100 to size 1–4 (column span).
         const size = Math.max(1, Math.floor(article.score / 20));
         const cell = document.createElement("div");
         cell.className = "article";
         cell.classList.add(`size-${size}`);
-        if (dimmed) cell.classList.add("dimmed");
+        if (muted) cell.classList.add("muted");
         const title = document.createElement("h2");
         const link = document.createElement("a");
         link.href = article.url;
@@ -217,31 +214,31 @@ function render(articles, gridElement, dimmed = false) {
         upButton.href = "#";
         upButton.role = "button";
         upButton.textContent = "▲";
-        upButton.addEventListener("click", (event) => upVote(event, article));
+        upButton.addEventListener("click", event => upVote(event, article));
         const downButton = document.createElement("a");
         downButton.href = "#";
         downButton.role = "button";
         downButton.textContent = "▼";
-        downButton.addEventListener("click", (event) => downVote(event, article));
-        const site = new URL(article.url).hostname.split(".").slice(-2, -1)[0];
+        downButton.addEventListener("click", event => downVote(event, article));
         const date = new Date(article.publishedAt);
         const time = date.toTimeString().slice(0, 5);
         meta.appendChild(upButton);
-        meta.appendChild(document.createTextNode(` ${site} ${time} → ${article.score}`));
+        meta.appendChild(document.createTextNode(` ${article.site} ${time} → ${article.score}`));
         meta.appendChild(downButton);
         cell.appendChild(title);
         cell.appendChild(description);
         cell.appendChild(meta);
-        gridElement.appendChild(cell);
+        grid.appendChild(cell);
     });
 }
 
 function renderAll(articles) {
     const visible = articles.filter(a => a.score >= 20);
-    const hidden = articles.filter(a => a.score < 20);
+    const junkpile = articles.filter(a => a.score < 20);
     render(visible, document.getElementById("grid"), false);
-    render(hidden, document.getElementById("hidden-grid"), true);
-    document.getElementById("toggle-hidden").classList.toggle("hidden", hidden.length === 0);
+    render(junkpile, document.getElementById("junk-grid"), true);
+    const toggle = document.getElementById("toggle-junk");
+    toggle.classList.toggle("hidden", false);
 }
 
 function getFeedUrl(url) {
@@ -250,7 +247,16 @@ function getFeedUrl(url) {
     return `${PROXY}?token=${PROXY_TOKEN}&url=${url}`;
 }
 
+function toggleJunk(event) {
+    event.preventDefault();
+    const grid = document.getElementById("junk-grid");
+    const link = event.target;
+    grid.classList.toggle("hidden");
+    link.textContent = grid.classList.contains("hidden") ? "show junkpile" : "hide junkpile";
+}
+
 function main() {
+    document.getElementById("toggle-junk").addEventListener("click", event => toggleJunk(event));
     // XXX: Cache in session storage while we're mostly just testing.
     const cached = sessionStorage.getItem("articles");
     if (cached) {
@@ -264,12 +270,11 @@ function main() {
         const feeds = FEEDS.map(getFeedUrl);
         Promise.all(feeds.map(url => fetch(url).then(response => response.text())))
             .then(texts => parse(texts))
+            .then(articles => articles.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt)))
             .then(articles => filterByPublishedAt(articles))
             .then(articles => deduplicate(articles))
             .then(articles => score(articles))
             .then(articles => {
-                articles.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
-                articles = articles.slice(0, 100);
                 sessionStorage.setItem("articles", JSON.stringify(articles));
                 console.log(articles);
                 renderAll(articles);
@@ -279,12 +284,5 @@ function main() {
 }
 
 (function() {
-    document.getElementById("toggle-hidden").addEventListener("click", (event) => {
-        event.preventDefault();
-        const hiddenGrid = document.getElementById("hidden-grid");
-        const link = event.target;
-        hiddenGrid.classList.toggle("hidden");
-        link.textContent = hiddenGrid.classList.contains("hidden") ? "show hidden" : "hide hidden";
-    });
     main();
 })();

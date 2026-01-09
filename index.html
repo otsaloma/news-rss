@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="fi">
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Uutiset">
-    <title>Uutiset</title>
+    <meta name="description" content="News">
+    <title>News</title>
     <link rel="canonical" href="https://otsaloma.io/news/">
     <link rel="icon" href="favicon.svg?v=dev">
     <link rel="mask-icon" href="favicon-mask.svg?v=dev" color="#ffa348">
@@ -21,10 +21,13 @@
         </div>
       </div>
       <div id="toast" class="hidden"></div>
-      <div id="grid"></div>
-      <a href="#" role="button" id="toggle-hidden" class="hidden">show hidden</a>
-      <div id="hidden-grid" class="hidden"></div>
+      <div id="grid" class="grid"></div>
+      <a href="#" role="button" id="toggle-junk" class="hidden">show junkpile</a>
+      <div id="junk-grid" class="grid hidden"></div>
     </main>
+    <footer>
+      <a href="https://github.com/otsaloma/news-rss">github.com/otsaloma/news-rss</a>
+    </footer>
     <script src="https://unpkg.com/rss-parser@3.13.0/dist/rss-parser.min.js"></script>
     <script type="module" src="index.js?v=dev"></script>
   </body>

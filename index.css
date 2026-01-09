@@ -31,30 +31,23 @@ a {
 }
 
 .hidden {
-  height: 0;
-  opacity: 0;
-  overflow: hidden;
+  display: none !important;
 }
 
 #toast {
   background-color: var(--color-text);
   border-radius: 999px;
-  color: var(--color-background);
-  left: 50%;
+  color: white;
   opacity: 1;
-  padding: 1rem 2rem;
+  padding: 0.5rem 1rem;
   position: fixed;
+  right: 2rem;
   top: 2rem;
-  transform: translateX(-50%);
   transition: opacity 0.3s ease;
   z-index: 1000;
 }
 
-#toast.hidden {
-  opacity: 0;
-}
-
-#grid {
+.grid {
   display: grid;
   gap: 2rem;
   grid-auto-flow: dense;
@@ -85,7 +78,6 @@ a {
 
 .article .meta {
   font-size: 75%;
-  /* -3px on account of the button padding below. */
   margin: 0.5em 0 0.5em -3px;
   opacity: 0.5;
   text-transform: uppercase;
@@ -95,21 +87,17 @@ a {
   padding: 3px;
 }
 
-#toggle-hidden {
+#toggle-junk {
   display: block;
-  margin: 2rem 0;
+  margin: 1rem 0;
 }
 
-#hidden-grid {
-  display: grid;
-  gap: 2rem;
-  grid-auto-flow: dense;
-  grid-auto-rows: min-content;
-  grid-template-columns: repeat(6, 1fr);
-  text-align: left;
+.article.muted h2,
+.article.muted .description {
+  opacity: 0.5;
 }
 
-.article.dimmed h2,
-.article.dimmed .description {
+footer {
+  margin: 1rem 0 2rem 0;
   opacity: 0.5;
 }
