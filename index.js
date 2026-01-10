@@ -87,7 +87,7 @@ EXAMPLE: [0, 2, 5, 7]
         dangerouslyAllowBrowser: true
     });
     return client.messages.create({
-        model: "claude-sonnet-4-5",
+        model: "claude-opus-4-5",
         max_tokens: 5000,
         messages: [{role: "user", content: prompt}],
     }).then(data => {
@@ -119,8 +119,7 @@ function score(articles) {
     ).join("\n");
     const votes = getVotes();
     const examples = Object.values(votes).map(vote => {
-        const score = vote.vote > 0 ? 90 : 10;
-        return `- ${vote.title} — ${vote.descriptionShort} → ${score} (reason: ${vote.reason})`;
+        return `- ${vote.title} — ${vote.descriptionShort} → ${vote.vote} (reason: ${vote.reason})`;
     }).join("\n");
     const prompt = `
 You are given a list of news articles.
@@ -154,7 +153,7 @@ EXAMPLE: [85, 17, 53, 41]
         dangerouslyAllowBrowser: true
     });
     return client.messages.create({
-        model: "claude-sonnet-4-5",
+        model: "claude-opus-4-5",
         max_tokens: 5000,
         messages: [{role: "user", content: prompt}]
     }).then(data => {
@@ -191,12 +190,14 @@ function showVotePopover(article, value) {
 
 function upVote(event, article) {
     event.preventDefault();
-    showVotePopover(article, 1);
+    const vote = Math.min(100, Math.round(article.score + 20));
+    showVotePopover(article, vote);
 }
 
 function downVote(event, article) {
     event.preventDefault();
-    showVotePopover(article, -1);
+    const vote = Math.max(0, Math.round(article.score - 20));
+    showVotePopover(article, vote);
 }
 
 function submitVote(event) {
@@ -206,7 +207,7 @@ function submitVote(event) {
     const {article, value} = pendingVote;
     saveVote(article, value, reason);
     document.getElementById("vote-popover").hidePopover();
-    const action = value > 0 ? "Upvoted" : "Downvoted";
+    const action = value > 50 ? "Upvoted" : "Downvoted";
     notify(`${action} "${article.title}"`);
     pendingVote = null;
 }
