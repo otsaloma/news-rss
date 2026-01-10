@@ -106,6 +106,10 @@ footer {
   background: rgb(from var(--color-text) r g b / 0.67);
 }
 
+body.popover-open a {
+  pointer-events: none;
+}
+
 #vote-popover {
   background: var(--color-text);
   border-radius: 36px;

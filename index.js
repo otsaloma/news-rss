@@ -283,6 +283,9 @@ function main() {
     document.getElementById("vote-reason").addEventListener("keydown", event => {
         if (event.key === "Enter") submitVote(event);
     });
+    document.getElementById("vote-popover").addEventListener("toggle", event => {
+        document.body.classList.toggle("popover-open", event.newState === "open");
+    });
     // XXX: Cache in session storage while we're mostly just testing.
     const cached = sessionStorage.getItem("articles");
     if (cached) {
