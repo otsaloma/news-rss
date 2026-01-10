@@ -33,6 +33,9 @@ const FEEDS = [
 const ARTICLE_MAX_AGE = 86400;
 const VOTES_MAX_COUNT = 500;
 
+// Pending vote waiting for reason input.
+let pendingVote = null;
+
 function parse(texts) {
     // Parse feed texts to a single list of articles.
     return Promise.all(texts.map(text => {
@@ -84,7 +87,7 @@ EXAMPLE: [0, 2, 5, 7]
         dangerouslyAllowBrowser: true
     });
     return client.messages.create({
-        model: "claude-opus-4-5",
+        model: "claude-sonnet-4-5",
         max_tokens: 5000,
         messages: [{role: "user", content: prompt}],
     }).then(data => {
@@ -117,7 +120,7 @@ function score(articles) {
     const votes = getVotes();
     const examples = Object.values(votes).map(vote => {
         const score = vote.vote > 0 ? 90 : 10;
-        return `- ${vote.title} — ${vote.descriptionShort} → ${score}`;
+        return `- ${vote.title} — ${vote.descriptionShort} → ${score} (reason: ${vote.reason})`;
     }).join("\n");
     const prompt = `
 You are given a list of news articles.
@@ -151,7 +154,7 @@ EXAMPLE: [85, 17, 53, 41]
         dangerouslyAllowBrowser: true
     });
     return client.messages.create({
-        model: "claude-opus-4-5",
+        model: "claude-sonnet-4-5",
         max_tokens: 5000,
         messages: [{role: "user", content: prompt}]
     }).then(data => {
@@ -163,11 +166,11 @@ EXAMPLE: [85, 17, 53, 41]
     });
 }
 
-function saveVote(article, value) {
+function saveVote(article, value, reason) {
     const votes = getVotes();
     const votedAt = Math.floor(Date.now() / 1000);
-    console.log("Voting", article.url, value);
-    votes[article.url] = {...article, vote: value, votedAt: votedAt};
+    console.log("Voting", article.url, value, reason);
+    votes[article.url] = {...article, vote: value, votedAt: votedAt, reason: reason};
     // Drop the oldest votes to if VOTES_MAX_COUNT exceeded.
     const entries = Object.entries(votes)
           .sort((a, b) => b[1].votedAt - a[1].votedAt)
@@ -177,16 +180,35 @@ function saveVote(article, value) {
     localStorage.setItem("votes", JSON.stringify(filtered));
 }
 
+function showVotePopover(article, value) {
+    pendingVote = {article: article, value: value};
+    const popover = document.getElementById("vote-popover");
+    const input = document.getElementById("vote-reason");
+    input.value = "";
+    popover.showPopover();
+    input.focus();
+}
+
 function upVote(event, article) {
     event.preventDefault();
-    saveVote(article, 1);
-    notify(`Upvoted “${article.title}”`);
+    showVotePopover(article, 1);
 }
 
 function downVote(event, article) {
     event.preventDefault();
-    saveVote(article, -1);
-    notify(`Downvoted “${article.title}”`);
+    showVotePopover(article, -1);
+}
+
+function submitVote(event) {
+    event.preventDefault();
+    if (!pendingVote) return;
+    const reason = document.getElementById("vote-reason").value.trim();
+    const {article, value} = pendingVote;
+    saveVote(article, value, reason);
+    document.getElementById("vote-popover").hidePopover();
+    const action = value > 0 ? "Upvoted" : "Downvoted";
+    notify(`${action} "${article.title}"`);
+    pendingVote = null;
 }
 
 function render(articles, grid, muted=false) {
@@ -257,6 +279,10 @@ function toggleJunk(event) {
 
 function main() {
     document.getElementById("toggle-junk").addEventListener("click", event => toggleJunk(event));
+    document.getElementById("vote-save").addEventListener("click", event => submitVote(event));
+    document.getElementById("vote-reason").addEventListener("keydown", event => {
+        if (event.key === "Enter") submitVote(event);
+    });
     // XXX: Cache in session storage while we're mostly just testing.
     const cached = sessionStorage.getItem("articles");
     if (cached) {

@@ -101,3 +101,57 @@ footer {
   margin: 1rem 0 2rem 0;
   opacity: 0.5;
 }
+
+#vote-popover::backdrop {
+  background: rgb(from var(--color-text) r g b / 0.67);
+}
+
+#vote-popover {
+  background: var(--color-text);
+  border-radius: 36px;
+  border: none;
+  color: white;
+  left: 50%;
+  margin: 0;
+  padding: 2rem;
+  position: fixed;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+#vote-popover label {
+  display: block;
+  font-weight: 600;
+  margin: 0 0 24px 0;
+  text-align: center;
+}
+
+#vote-popover input {
+  background: inherit;
+  border-radius: 999px;
+  border: none !important;
+  outline: none !important;
+  color: inherit;
+  display: block;
+  font-family: inherit;
+  margin: 24px 0;
+  min-width: 300px;
+  padding: 12px;
+}
+
+#vote-popover input:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+#vote-popover button {
+  background: white;
+  border-radius: 999px;
+  border: none;
+  color: var(--color-text);
+  cursor: pointer;
+  display: block;
+  font-weight: 600;
+  margin: 24px 0 0 0;
+  padding: 12px;
+  width: 100%;
+}
