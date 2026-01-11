@@ -207,8 +207,7 @@ function submitVote(event) {
     const {article, value} = pendingVote;
     saveVote(article, value, reason);
     document.getElementById("vote-popover").hidePopover();
-    const action = value > 50 ? "Upvoted" : "Downvoted";
-    notify(`${action} "${article.title}"`);
+    notify(`Voted "${article.title}"`);
     pendingVote = null;
 }
 
@@ -260,7 +259,7 @@ function renderAll(articles) {
     const junkpile = articles.filter(a => a.score < 20);
     render(visible, document.getElementById("grid"), false);
     render(junkpile, document.getElementById("junk-grid"), true);
-    const toggle = document.getElementById("toggle-junk");
+    const toggle = document.getElementById("junk-toggle");
     toggle.classList.toggle("hidden", false);
 }
 
@@ -279,7 +278,7 @@ function toggleJunk(event) {
 }
 
 function main() {
-    document.getElementById("toggle-junk").addEventListener("click", event => toggleJunk(event));
+    document.getElementById("junk-toggle").addEventListener("click", event => toggleJunk(event));
     document.getElementById("vote-save").addEventListener("click", event => submitVote(event));
     document.getElementById("vote-reason").addEventListener("keydown", event => {
         if (event.key === "Enter") submitVote(event);
