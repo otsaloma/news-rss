@@ -140,13 +140,29 @@ body.popover-open a { pointer-events: none; }
 
 .article .meta {
   font-size: 12px;
-  margin: 0.5em 0 0.5em -3px;
+  margin: 0.5em 0;
   opacity: 0.5;
   text-transform: uppercase;
 }
 
-.article .meta a[role="button"] {
-  padding: 3px;
+.rating {
+  display: inline-flex;
+  gap: 2px;
+  margin-left: 6px;
+  opacity: 1;
+  vertical-align: -2px;
+}
+
+.rating-circle {
+  background: rgb(from currentColor r g b / 0.25);
+  border-radius: 50%;
+  cursor: pointer;
+  height: 12px;
+  width: 12px;
+}
+
+.rating-circle.filled {
+  background: currentColor;
 }
 
 .article.muted h2, .article.muted .description {

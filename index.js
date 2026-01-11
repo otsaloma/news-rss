@@ -31,7 +31,7 @@ const FEEDS = [
 
 const ARTICLE_MAX_AGE = 86400;
 const JUNK_THRESHOLD = 20;
-const VOTE_BUMP = 20;
+const RATING_SCORES = [10, 30, 50, 70, 90];
 const VOTES_MAX_COUNT = 200;
 
 // Pending vote waiting for popover input.
@@ -225,20 +225,27 @@ function onVotePopoverToggle(event) {
     document.body.classList.toggle("popover-open", event.newState === "open");
 }
 
-function onUpvoteClick(event, article) {
+function onRatingHover(circles, index) {
+    circles.forEach((x, i) => x.classList.toggle("filled", i <= index));
+}
+
+function onRatingLeave(circles) {
+    circles.forEach(x => x.classList.remove("filled"));
+}
+
+function onRatingClick(event, article, rating) {
     event.preventDefault();
-    let vote = article.score + VOTE_BUMP;
-    vote = Math.min(100, vote);
-    vote = Math.round(vote);
+    const vote = RATING_SCORES[rating-1];
     showVotePopover(article, vote);
 }
 
-function onDownvoteClick(event, article) {
-    event.preventDefault();
-    let vote = article.score - VOTE_BUMP;
-    vote = Math.max(0, vote);
-    vote = Math.round(vote);
-    showVotePopover(article, vote);
+function createRatingCircle(circles, index, article) {
+    const circle = document.createElement("span");
+    circle.className = "rating-circle";
+    circle.addEventListener("mouseenter", () => onRatingHover(circles, index));
+    circle.addEventListener("mouseleave", () => onRatingLeave(circles));
+    circle.addEventListener("click", event => onRatingClick(event, article, index + 1));
+    return circle;
 }
 
 function render(articles, grid, muted=false) {
@@ -263,21 +270,18 @@ function render(articles, grid, muted=false) {
         description.textContent = article.description;
         const meta = document.createElement("p");
         meta.className = "meta";
-        const upButton = document.createElement("a");
-        upButton.href = "#";
-        upButton.role = "button";
-        upButton.textContent = "▲";
-        connect(upButton, "click", event => onUpvoteClick(event, article));
-        const downButton = document.createElement("a");
-        downButton.href = "#";
-        downButton.role = "button";
-        downButton.textContent = "▼";
-        connect(downButton, "click", event => onDownvoteClick(event, article));
         const date = new Date(article.publishedAt);
         const time = date.toTimeString().slice(0, 5);
-        meta.appendChild(upButton);
-        meta.appendChild(document.createTextNode(` ${article.site} ${time} → ${article.score}`));
-        meta.appendChild(downButton);
+        meta.appendChild(document.createTextNode(`${article.site} ${time} → ${article.score} `));
+        const rating = document.createElement("span");
+        rating.className = "rating";
+        const circles = [];
+        for (let i = 0; i < 5; i++) {
+            const circle = createRatingCircle(circles, i, article);
+            circles.push(circle);
+            rating.appendChild(circle);
+        }
+        meta.appendChild(rating);
         cell.appendChild(title);
         cell.appendChild(description);
         cell.appendChild(meta);
