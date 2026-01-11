@@ -162,7 +162,7 @@ body.popover-open a { pointer-events: none; }
 }
 
 .rating-circle.filled {
-  background: currentColor;
+  background: #ff7800;
 }
 
 .article.muted h2, .article.muted .description {

@@ -182,7 +182,7 @@ function showVotePopover(article, value) {
     pendingVote = {article: article, value: value};
     const popover = document.getElementById("vote-popover");
     const label = document.getElementById("vote-reason-label");
-    label.textContent = value > article.score || value === 100 ?
+    label.textContent = value > article.score ?
         "What specifically is good about it?" :
         "What specifically is bad about it?";
     const input = document.getElementById("vote-reason");
