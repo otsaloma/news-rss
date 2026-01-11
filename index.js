@@ -29,12 +29,26 @@ const FEEDS = [
     "https://yle.fi/rss/uutiset/paauutiset",
 ];
 
-// TODO: Allow override by URL parameters.
 const ARTICLE_MAX_AGE = 86400;
-const VOTES_MAX_COUNT = 500;
+const JUNK_THRESHOLD = 20;
+const VOTE_BUMP = 20;
+const VOTES_MAX_COUNT = 200;
 
-// Pending vote waiting for reason input.
+// Pending vote waiting for popover input.
 let pendingVote = null;
+
+function connect(target, type, listener) {
+    if (typeof target === "string")
+        target = document.getElementById(target);
+    target.addEventListener(type, listener);
+}
+
+function notify(message) {
+    let toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.classList.toggle("hidden", false);
+    setTimeout(() => toast.classList.toggle("hidden", true), 2000);
+}
 
 function parse(texts) {
     // Parse feed texts to a single list of articles.
@@ -42,11 +56,16 @@ function parse(texts) {
         const parser = new RSSParser();
         return parser.parseString(text)
             .then(feed => feed.items.map(item => ({
+                // Strip topic prefixes from titles used at hs.fi.
+                // e.g. Lukijan mielipide | Asuntopula hidastaa Helsingin kasvua
                 title: (item.title || "").split("|").pop().trim(),
                 description: item.contentSnippet || "",
+                // Take the first sentence of the description.
+                // Avoid stopping at the common case of initials like F. M. Dostoevsky.
                 descriptionShort: (item.contentSnippet || "").split(/[^A-ZÅÄÖ][.!?] /)[0],
                 url: item.link || "",
                 host: new URL(item.link || "").hostname,
+                // Take the second last component of host, e.g. www.hs.fi -> hs
                 site: new URL(item.link || "").hostname.split(".").slice(-2, -1)[0],
                 publishedAt: item.isoDate || "",
             })));
@@ -76,10 +95,10 @@ Of duplicates, prefer to keep articles from known free public services such as y
 Articles:
 ${dump}
 
-THINK STEP BY STEP AND BRIEFLY STATE YOUR REASONING.
-THEN ON YOUR FINAL LINE, RETURN A JSON ARRAY OF INDICES TO KEEP.
-YOU ARE NOT ALLOWED TO OMIT THE FINAL JSON ARRAY.
-EXAMPLE: [0, 2, 5, 7]
+Think step by step and briefly state your reasoning.
+Then on your final line, return a JSON array of indices to KEEP.
+You are not allowed to omit the final JSON array.
+Example: [0, 2, 5, 7]
 `.trim();
     console.log(prompt);
     const client = new Anthropic({
@@ -103,13 +122,6 @@ function getVotes() {
     return JSON.parse(localStorage.getItem("votes") || "{}");
 }
 
-function notify(message) {
-    let toast = document.getElementById("toast");
-    toast.textContent = message;
-    toast.classList.toggle("hidden", false);
-    setTimeout(() => toast.classList.toggle("hidden", true), 2000);
-}
-
 function score(articles) {
     // Assign an importance score (0–100) for each of articles.
     if (articles.length === 0)
@@ -119,7 +131,7 @@ function score(articles) {
     ).join("\n");
     const votes = getVotes();
     const examples = Object.values(votes).map(vote => {
-        return `- ${vote.title} — ${vote.descriptionShort} → ${vote.vote} (reason: ${vote.reason})`;
+        return `- ${vote.title} — ${vote.descriptionShort} → ${vote.vote} (reason: ${vote.voteReason})`;
     }).join("\n");
     const prompt = `
 You are given a list of news articles.
@@ -127,7 +139,6 @@ Score the importance of each article with a value between 0–100.
 Use the full range 0–100 in about a uniform distribution.
 General guidelines and previously rated articles below.
 When in conflict, prefer to follow previously rated articles.
-From the previously rated articles, try to infer the general abstract principles.
 Consider not only the topic of articles, but also viewpoint and tone.
 
 General guidelines:
@@ -142,10 +153,12 @@ ${examples}
 Articles:
 ${dump}
 
-THINK STEP BY STEP AND BRIEFLY STATE YOUR REASONING.
-THEN ON YOUR FINAL LINE, RETURN A JSON ARRAY OF SCORES (0–100), ONE PER ARTICLE IN ORDER.
-YOU ARE NOT ALLOWED TO OMIT THE FINAL JSON ARRAY.
-EXAMPLE: [85, 17, 53, 41]
+Think step by step and briefly state your reasoning.
+First summarize the patterns you see in the previously rated examples.
+Then summarize how those patterns apply to the given articles.
+Then on your final line, return a JSON array of scores (0–100), one per article in order.
+You are not allowed to omit the final JSON array.
+Example: [85, 17, 53, 41]
 `.trim();
     console.log(prompt);
     const client = new Anthropic({
@@ -161,16 +174,29 @@ EXAMPLE: [85, 17, 53, 41]
         console.log(content);
         const matches = [...content.matchAll(/\[[\d,\s]+\]/g)];
         const scores = JSON.parse(matches[matches.length-1]);
-        return articles.map((feed, i) => ({...feed, score: scores[i] || 50}));
+        return articles.map((article, i) => ({...article, score: scores[i] || 50}));
     });
+}
+
+function showVotePopover(article, value) {
+    pendingVote = {article: article, value: value};
+    const popover = document.getElementById("vote-popover");
+    const label = document.getElementById("vote-reason-label");
+    label.textContent = value > article.score || value === 100 ?
+        "What specifically is good about it?" :
+        "What specifically is bad about it?";
+    const input = document.getElementById("vote-reason");
+    input.value = "";
+    popover.showPopover();
+    input.focus();
 }
 
 function saveVote(article, value, reason) {
     const votes = getVotes();
     const votedAt = Math.floor(Date.now() / 1000);
     console.log("Voting", article.url, value, reason);
-    votes[article.url] = {...article, vote: value, votedAt: votedAt, reason: reason};
-    // Drop the oldest votes to if VOTES_MAX_COUNT exceeded.
+    votes[article.url] = {...article, vote: value, votedAt: votedAt, voteReason: reason};
+    // Drop oldest votes if VOTES_MAX_COUNT exceeded.
     const entries = Object.entries(votes)
           .sort((a, b) => b[1].votedAt - a[1].votedAt)
           .slice(0, VOTES_MAX_COUNT);
@@ -179,36 +205,40 @@ function saveVote(article, value, reason) {
     localStorage.setItem("votes", JSON.stringify(filtered));
 }
 
-function showVotePopover(article, value) {
-    pendingVote = {article: article, value: value};
-    const popover = document.getElementById("vote-popover");
-    const input = document.getElementById("vote-reason");
-    input.value = "";
-    popover.showPopover();
-    input.focus();
-}
-
-function upVote(event, article) {
-    event.preventDefault();
-    const vote = Math.min(100, Math.round(article.score + 20));
-    showVotePopover(article, vote);
-}
-
-function downVote(event, article) {
-    event.preventDefault();
-    const vote = Math.max(0, Math.round(article.score - 20));
-    showVotePopover(article, vote);
-}
-
-function submitVote(event) {
+function onVoteSaveClick(event) {
     event.preventDefault();
     if (!pendingVote) return;
-    const reason = document.getElementById("vote-reason").value.trim();
     const {article, value} = pendingVote;
+    const reason = document.getElementById("vote-reason").value.trim();
     saveVote(article, value, reason);
     document.getElementById("vote-popover").hidePopover();
-    notify(`Voted "${article.title}"`);
+    notify(`Voted ${article.score} → ${value}`);
     pendingVote = null;
+}
+
+function onVoteReasonKeydown(event) {
+    if (event.key === "Enter")
+        onVoteSaveClick(event);
+}
+
+function onVotePopoverToggle(event) {
+    document.body.classList.toggle("popover-open", event.newState === "open");
+}
+
+function onUpvoteClick(event, article) {
+    event.preventDefault();
+    let vote = article.score + VOTE_BUMP;
+    vote = Math.min(100, vote);
+    vote = Math.round(vote);
+    showVotePopover(article, vote);
+}
+
+function onDownvoteClick(event, article) {
+    event.preventDefault();
+    let vote = article.score - VOTE_BUMP;
+    vote = Math.max(0, vote);
+    vote = Math.round(vote);
+    showVotePopover(article, vote);
 }
 
 function render(articles, grid, muted=false) {
@@ -216,6 +246,7 @@ function render(articles, grid, muted=false) {
     grid.innerHTML = "";
     articles.forEach(article => {
         // Map score 0–100 to size 1–4 (column span).
+        // Size 1 is twice because the lowest is hidden in the junkpile.
         const size = Math.max(1, Math.floor(article.score / 20));
         const cell = document.createElement("div");
         cell.className = "article";
@@ -236,12 +267,12 @@ function render(articles, grid, muted=false) {
         upButton.href = "#";
         upButton.role = "button";
         upButton.textContent = "▲";
-        upButton.addEventListener("click", event => upVote(event, article));
+        connect(upButton, "click", event => onUpvoteClick(event, article));
         const downButton = document.createElement("a");
         downButton.href = "#";
         downButton.role = "button";
         downButton.textContent = "▼";
-        downButton.addEventListener("click", event => downVote(event, article));
+        connect(downButton, "click", event => onDownvoteClick(event, article));
         const date = new Date(article.publishedAt);
         const time = date.toTimeString().slice(0, 5);
         meta.appendChild(upButton);
@@ -255,12 +286,21 @@ function render(articles, grid, muted=false) {
 }
 
 function renderAll(articles) {
-    const visible = articles.filter(a => a.score >= 20);
-    const junkpile = articles.filter(a => a.score < 20);
+    const visible = articles.filter(x => x.score >= JUNK_THRESHOLD);
+    const junkpile = articles.filter(x => x.score < JUNK_THRESHOLD);
     render(visible, document.getElementById("grid"), false);
     render(junkpile, document.getElementById("junk-grid"), true);
     const toggle = document.getElementById("junk-toggle");
     toggle.classList.toggle("hidden", false);
+}
+
+function onJunkToggleClick(event) {
+    event.preventDefault();
+    const grid = document.getElementById("junk-grid");
+    grid.classList.toggle("hidden");
+    const link = event.target;
+    link.textContent = grid.classList.contains("hidden") ?
+        "show junkpile" : "hide junkpile";
 }
 
 function getFeedUrl(url) {
@@ -269,23 +309,11 @@ function getFeedUrl(url) {
     return `${PROXY}?token=${PROXY_TOKEN}&url=${url}`;
 }
 
-function toggleJunk(event) {
-    event.preventDefault();
-    const grid = document.getElementById("junk-grid");
-    const link = event.target;
-    grid.classList.toggle("hidden");
-    link.textContent = grid.classList.contains("hidden") ? "show junkpile" : "hide junkpile";
-}
-
 function main() {
-    document.getElementById("junk-toggle").addEventListener("click", event => toggleJunk(event));
-    document.getElementById("vote-save").addEventListener("click", event => submitVote(event));
-    document.getElementById("vote-reason").addEventListener("keydown", event => {
-        if (event.key === "Enter") submitVote(event);
-    });
-    document.getElementById("vote-popover").addEventListener("toggle", event => {
-        document.body.classList.toggle("popover-open", event.newState === "open");
-    });
+    connect("junk-toggle", "click", onJunkToggleClick);
+    connect("vote-popover", "toggle", onVotePopoverToggle);
+    connect("vote-reason", "keydown", onVoteReasonKeydown);
+    connect("vote-save", "click", onVoteSaveClick);
     // XXX: Cache in session storage while we're mostly just testing.
     const cached = sessionStorage.getItem("articles");
     if (cached) {

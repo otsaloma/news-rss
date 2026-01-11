@@ -20,3 +20,7 @@ Low score articles behind a toggle, hidden by default:
 ## Getting Started
 
 TODO/WIP
+
+## Tradeoffs
+
+TODO: Vote score, reason

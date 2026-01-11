@@ -57,7 +57,7 @@ a:hover {
 body.popover-open a { pointer-events: none; }
 
 #vote-popover {
-  background: var(--color-background);
+  background: white;
   border-radius: 36px;
   border: none;
   color: var(--color-text);
