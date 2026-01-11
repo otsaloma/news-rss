@@ -307,6 +307,19 @@ function onJunkToggleClick(event) {
         "show junkpile" : "hide junkpile";
 }
 
+function onClearCacheClick(event) {
+    event.preventDefault();
+    sessionStorage.removeItem("articles");
+    notify("Cached articles cleared!");
+}
+
+function onClearRatingsClick(event) {
+    event.preventDefault();
+    if (!confirm("Are you sure you want to clear all your ratings?")) return;
+    localStorage.removeItem("votes");
+    notify("Ratings cleared!");
+}
+
 function getFeedUrl(url) {
     // Use our proxy to get around cross-origin limitations.
     url = encodeURIComponent(url);
@@ -314,6 +327,8 @@ function getFeedUrl(url) {
 }
 
 function main() {
+    connect("clear-cache", "click", onClearCacheClick);
+    connect("clear-ratings", "click", onClearRatingsClick);
     connect("junk-toggle", "click", onJunkToggleClick);
     connect("vote-popover", "toggle", onVotePopoverToggle);
     connect("vote-reason", "keydown", onVoteReasonKeydown);
