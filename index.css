@@ -21,7 +21,7 @@ body {
   font-size: var(--font-size-main);
   line-height: 1.5;
   margin: 0;
-  padding: 2.5rem 3rem;
+  padding: var(--body-padding, 2.5rem 3rem);
   text-align: center;
   text-rendering: optimizeLegibility;
 }
@@ -64,6 +64,7 @@ body.popover-open a { pointer-events: none; }
   color: var(--color-text);
   left: 50%;
   margin: 0;
+  max-width: var(--popover-max-width, none);
   padding: 2rem;
   position: fixed;
   top: 50%;
@@ -84,7 +85,7 @@ body.popover-open a { pointer-events: none; }
   color: inherit;
   display: block;
   margin: 24px 0;
-  min-width: 300px;
+  min-width: min(300px, 70vw);
   outline: 2px solid rgba(0, 0, 0, 0.1) !important;
   padding: 12px;
 }
@@ -111,7 +112,7 @@ body.popover-open a { pointer-events: none; }
   gap: 2rem;
   grid-auto-flow: dense;
   grid-auto-rows: min-content;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(var(--column-count, 6), 1fr);
   text-align: left;
 }
 
@@ -130,10 +131,10 @@ body.popover-open a { pointer-events: none; }
   margin: 0 0 0.5em 0;
 }
 
-.article.size-1 h2 { font-size: 16px; }
-.article.size-2 h2 { font-size: 26px; }
-.article.size-3 h2 { font-size: 36px; }
-.article.size-4 h2 { font-size: 46px; }
+.article.importance-1 h2 { font-size: 16px; }
+.article.importance-2 h2 { font-size: 26px; }
+.article.importance-3 h2 { font-size: 36px; }
+.article.importance-4 h2 { font-size: 46px; }
 
 .article .description {
   margin: 0.5em 0;

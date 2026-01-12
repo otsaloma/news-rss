@@ -20,6 +20,21 @@ const JUNK_THRESHOLD = 20;
 const RATING_SCORES = [10, 30, 50, 70, 90];
 const VOTES_MAX_COUNT = 200;
 
+function getColumnCount() {
+    const width = window.innerWidth;
+    if (width < 480) return 1;
+    if (width < 768) return 2;
+    if (width < 1024) return 4;
+    return 6;
+}
+
+const COLUMN_COUNT = getColumnCount();
+document.documentElement.style.setProperty("--column-count", COLUMN_COUNT);
+if (COLUMN_COUNT <= 2) {
+    document.documentElement.style.setProperty("--body-padding", "1.25rem 1.5rem");
+    document.documentElement.style.setProperty("--popover-max-width", "90vw");
+}
+
 // Pending vote waiting for popover input.
 let pendingVote = null;
 
@@ -265,12 +280,14 @@ function render(articles, grid, muted=false) {
     // Render articles in grid like a newspaper front page.
     grid.innerHTML = "";
     articles.forEach(article => {
-        // Map score 0–100 to size 1–4 (column span).
-        // Size 1 is twice because the lowest is hidden in the junkpile.
-        const size = Math.max(1, Math.floor(article.score / 20));
+        // Map score 0–100 to importance 1–4 (font size).
+        const importance = Math.max(1, Math.floor(article.score / 20));
+        // Cap column span at available columns.
+        const size = Math.min(importance, COLUMN_COUNT);
         const cell = document.createElement("div");
         cell.className = "article";
         cell.classList.add(`size-${size}`);
+        cell.classList.add(`importance-${importance}`);
         if (muted) cell.classList.add("muted");
         const title = document.createElement("h2");
         const link = document.createElement("a");
