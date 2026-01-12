@@ -21,10 +21,17 @@
         </div>
       </div>
       <div id="toast" class="hidden"></div>
-      <div id="vote-popover" popover>
-        <label for="vote-reason" id="vote-reason-label">What exactly is good or bad about it?</label>
+      <div id="vote-popover" class="popover" popover>
+        <label for="vote-reason" id="vote-reason-label">what exactly is good or bad about it?</label>
         <input type="text" id="vote-reason">
-        <button id="vote-save">Save</button>
+        <button id="vote-save">save</button>
+      </div>
+      <div id="credentials-popover" class="popover" popover>
+        <label for="credentials-key">anthropic api key</label>
+        <input type="text" id="credentials-key">
+        <label for="credentials-token">proxy token</label>
+        <input type="text" id="credentials-token">
+        <button id="credentials-save">save</button>
       </div>
       <div id="grid" class="grid"></div>
       <div id="actions">
@@ -32,7 +39,7 @@
       </div>
       <div id="junk-grid" class="grid hidden"></div>
     </main>
-    <footer>
+    <footer class="hidden">
       <div>
         <a href="https://github.com/otsaloma/news-rss">github.com/otsaloma/news-rss</a>
       </div>

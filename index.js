@@ -5,23 +5,9 @@ import Anthropic from "https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.71.2/+es
 const PARAMS = new URLSearchParams(window.location.search);
 const PROXY = "https://ep3tfancwtwxecots3p6txr3ka0xfcrr.lambda-url.eu-north-1.on.aws/";
 
-// Load needed key and token from URL parameters or local storage or prompt.
+// Load needed key and token from URL parameters or local storage.
 let ANTHROPIC_API_KEY = PARAMS.get("key") || localStorage.getItem("ANTHROPIC_API_KEY");
 let PROXY_TOKEN = PARAMS.get("token") || localStorage.getItem("PROXY_TOKEN");
-
-if (!ANTHROPIC_API_KEY) {
-    const response = prompt("Anthropic API key:");
-    if (!response) throw "Missing ANTHROPIC_API_KEY!";
-    ANTHROPIC_API_KEY = response;
-    localStorage.setItem("ANTHROPIC_API_KEY", response);
-}
-
-if (!PROXY_TOKEN) {
-    const response = prompt("Proxy token:");
-    if (!response) throw "Missing PROXY_TOKEN!";
-    PROXY_TOKEN = response;
-    localStorage.setItem("PROXY_TOKEN", response);
-}
 
 const FEEDS = [
     "https://feeds.kauppalehti.fi/rss/main",
@@ -183,8 +169,8 @@ function showVotePopover(article, value) {
     const popover = document.getElementById("vote-popover");
     const label = document.getElementById("vote-reason-label");
     label.textContent = value > article.score ?
-        "What specifically is good about it?" :
-        "What specifically is bad about it?";
+        "what specifically is good about it?" :
+        "what specifically is bad about it?";
     const input = document.getElementById("vote-reason");
     input.value = "";
     popover.showPopover();
@@ -221,8 +207,35 @@ function onVoteReasonKeydown(event) {
         onVoteSaveClick(event);
 }
 
-function onVotePopoverToggle(event) {
+function onPopoverToggle(event) {
     document.body.classList.toggle("popover-open", event.newState === "open");
+}
+
+function showCredentialsPopover() {
+    const popover = document.getElementById("credentials-popover");
+    const keyInput = document.getElementById("credentials-key");
+    const tokenInput = document.getElementById("credentials-token");
+    keyInput.value = "";
+    tokenInput.value = "";
+    popover.showPopover();
+    keyInput.focus();
+}
+
+function onCredentialsSaveClick(event) {
+    event.preventDefault();
+    const key = document.getElementById("credentials-key").value.trim();
+    const token = document.getElementById("credentials-token").value.trim();
+    ANTHROPIC_API_KEY = key;
+    PROXY_TOKEN = token;
+    localStorage.setItem("ANTHROPIC_API_KEY", key);
+    localStorage.setItem("PROXY_TOKEN", token);
+    document.getElementById("credentials-popover").hidePopover();
+    key && token && loadArticles();
+}
+
+function onCredentialsKeydown(event) {
+    if (event.key === "Enter")
+        onCredentialsSaveClick(event);
 }
 
 function onRatingHover(circles, index) {
@@ -326,13 +339,7 @@ function getFeedUrl(url) {
     return `${PROXY}?token=${PROXY_TOKEN}&url=${url}`;
 }
 
-function main() {
-    connect("clear-cache", "click", onClearCacheClick);
-    connect("clear-ratings", "click", onClearRatingsClick);
-    connect("junk-toggle", "click", onJunkToggleClick);
-    connect("vote-popover", "toggle", onVotePopoverToggle);
-    connect("vote-reason", "keydown", onVoteReasonKeydown);
-    connect("vote-save", "click", onVoteSaveClick);
+function loadArticles() {
     // XXX: Cache in session storage while we're mostly just testing.
     const cached = sessionStorage.getItem("articles");
     if (cached) {
@@ -355,7 +362,27 @@ function main() {
                 console.log(articles);
                 renderAll(articles);
                 busy.classList.toggle("hidden", true);
+                const footer = document.querySelector("footer");
+                footer.classList.toggle("hidden", false);
             });
+    }
+}
+
+function main() {
+    connect("clear-cache", "click", onClearCacheClick);
+    connect("clear-ratings", "click", onClearRatingsClick);
+    connect("credentials-key", "keydown", onCredentialsKeydown);
+    connect("credentials-popover", "toggle", onPopoverToggle);
+    connect("credentials-save", "click", onCredentialsSaveClick);
+    connect("credentials-token", "keydown", onCredentialsKeydown);
+    connect("junk-toggle", "click", onJunkToggleClick);
+    connect("vote-popover", "toggle", onPopoverToggle);
+    connect("vote-reason", "keydown", onVoteReasonKeydown);
+    connect("vote-save", "click", onVoteSaveClick);
+    if (!ANTHROPIC_API_KEY || !PROXY_TOKEN) {
+        showCredentialsPopover();
+    } else {
+        loadArticles();
     }
 }
 

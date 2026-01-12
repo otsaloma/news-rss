@@ -2,6 +2,7 @@
 
 :root {
   --color-background: #fcfcf0;
+  --color-orange: #ff7800;
   --color-text: #374151;
   --font-family-sans-serif: Avenir Next, system-ui, sans-serif;
   --font-family-serif: EB Garamond, Apple Garamond, serif;
@@ -31,7 +32,7 @@ a {
 }
 
 a:hover {
-  border-bottom: 5px solid rgb(from #ff7800 r g b / 0.5);
+  border-bottom: 5px solid rgb(from var(--color-orange) r g b / 0.5);
 }
 
 .hidden {
@@ -52,11 +53,11 @@ a:hover {
   z-index: 1000;
 }
 
-/* Disable body while vote-popover is open. */
-#vote-popover::backdrop { background: rgb(from var(--color-text) r g b / 0.5); }
+/* Disable body while popover is open. */
+.popover::backdrop { background: rgb(from var(--color-text) r g b / 0.5); }
 body.popover-open a { pointer-events: none; }
 
-#vote-popover {
+.popover {
   background: white;
   border-radius: 36px;
   border: none;
@@ -69,14 +70,14 @@ body.popover-open a { pointer-events: none; }
   transform: translate(-50%, -50%);
 }
 
-#vote-popover label {
+.popover label {
   display: block;
   font-weight: 600;
   margin: 0 0 24px 0;
   text-align: center;
 }
 
-#vote-popover input {
+.popover input {
   background: inherit;
   border-radius: 999px;
   border: none !important;
@@ -84,15 +85,15 @@ body.popover-open a { pointer-events: none; }
   display: block;
   margin: 24px 0;
   min-width: 300px;
-  outline: none !important;
+  outline: 2px solid rgba(0, 0, 0, 0.1) !important;
   padding: 12px;
 }
 
-#vote-popover input:focus {
-  outline: 2px solid rgba(0, 0, 0, 0.1) !important;
+.popover input:focus {
+  outline: 2px solid rgba(0, 0, 0, 0.3) !important;
 }
 
-#vote-popover button {
+.popover button {
   background: var(--color-text);
   border-radius: 999px;
   border: none;
@@ -162,7 +163,7 @@ body.popover-open a { pointer-events: none; }
 }
 
 .rating-circle.filled {
-  background: #ff7800;
+  background: var(--color-orange);
 }
 
 .article.muted h2, .article.muted .description {
