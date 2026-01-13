@@ -84,6 +84,7 @@ body.popover-open a { pointer-events: none; }
   border: none !important;
   color: inherit;
   display: block;
+  font-size: 16px;
   margin: 24px 0;
   min-width: min(300px, 70vw);
   outline: 2px solid rgba(0, 0, 0, 0.1) !important;
