@@ -135,6 +135,7 @@ body.popover-open a { pointer-events: none; }
   font-family: var(--font-family-serif);
   font-weight: 700;
   margin: 0 0 0.5em 0;
+  overflow-wrap: break-word;
 }
 
 .article.importance-1 h2 { font-size: 18px; line-height: 22px; }
