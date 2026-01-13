@@ -364,6 +364,8 @@ function loadArticles() {
         const articles = JSON.parse(cached);
         console.log(articles);
         renderAll(articles);
+        const footer = document.querySelector("footer");
+        footer.classList.toggle("hidden", false);
     } else {
         const busy = document.getElementById("busy");
         busy.classList.toggle("hidden", false);
