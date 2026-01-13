@@ -126,6 +126,11 @@ body.popover-open a { pointer-events: none; }
   border-bottom: none;
 }
 
+.article {
+  max-width: 100%;
+  min-width: 0;
+};
+
 .article.size-1 { grid-column: span 1; }
 .article.size-2 { grid-column: span 2; }
 .article.size-3 { grid-column: span 3; }
