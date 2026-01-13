@@ -22,7 +22,7 @@
       </div>
       <div id="toast" class="hidden"></div>
       <div id="rating-popover" class="popover" popover>
-        <label for="rating-reason" id="rating-reason-label">what exactly is good or bad about it?</label>
+        <label for="rating-reason" id="rating-reason-label"></label>
         <input type="text" id="rating-reason">
         <button id="rating-save">save</button>
       </div>
@@ -35,18 +35,14 @@
       </div>
       <div id="grid" class="grid"></div>
       <div id="actions">
-        <a href="#" role="button" id="junk-toggle" class="hidden">show junkpile</a>
+        <a href="#" id="junk-toggle" class="hidden">show junkpile</a>
       </div>
       <div id="junk-grid" class="grid hidden"></div>
     </main>
-    <footer class="hidden">
-      <div>
-        <a href="https://github.com/otsaloma/news-rss">github.com/otsaloma/news-rss</a>
-      </div>
-      <div>
-        <a href="#" id="clear-cache">clear cached articles</a>
-        <a href="#" id="clear-ratings">clear my ratings</a>
-      </div>
+    <footer>
+      <div><a href="#" id="clear-cache">clear cached articles</a></div>
+      <div><a href="#" id="clear-ratings">clear my ratings</a></div>
+      <div><a href="https://github.com/otsaloma/news-rss">github.com/otsaloma/news-rss</a></div>
     </footer>
     <script src="https://unpkg.com/rss-parser@3.13.0/dist/rss-parser.min.js"></script>
     <script type="module" src="index.js?v=dev"></script>

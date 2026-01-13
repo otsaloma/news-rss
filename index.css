@@ -12,6 +12,7 @@
   --font-family-sans-serif: Avenir Next, system-ui, sans-serif;
   --font-family-serif: EB Garamond, serif;
   --font-size-main: 16px;
+  --font-size-small: 14px;
 }
 
 html {
@@ -26,9 +27,15 @@ body {
   font-size: var(--font-size-main);
   line-height: 1.5;
   margin: 0;
-  padding: var(--body-padding, 2.5rem 3rem);
+  padding: 2.5rem 3rem;
   text-align: center;
   text-rendering: optimizeLegibility;
+}
+
+@media (max-width: 768px) {
+  body {
+    padding: 1.25rem 1.5rem;
+  }
 }
 
 a {
@@ -48,7 +55,7 @@ a:hover {
   background-color: var(--color-text);
   border-radius: 999px;
   color: white;
-  font-size: 14px;
+  font-size: var(--font-size-small);
   opacity: 1;
   padding: 0.5rem 1rem;
   position: fixed;
@@ -69,7 +76,7 @@ body.popover-open a { pointer-events: none; }
   color: var(--color-text);
   left: 50%;
   margin: 0;
-  max-width: var(--popover-max-width, none);
+  max-width: 85vw;
   padding: 2rem;
   position: fixed;
   top: 50%;
@@ -79,7 +86,7 @@ body.popover-open a { pointer-events: none; }
 .popover label {
   display: block;
   font-weight: 600;
-  margin: 0 0 24px 0;
+  margin: 0 0 12px 0;
   text-align: center;
 }
 
@@ -89,9 +96,9 @@ body.popover-open a { pointer-events: none; }
   border: none !important;
   color: inherit;
   display: block;
-  font-size: 16px;
-  margin: 24px 0;
-  min-width: min(300px, 70vw);
+  font-size: 16px; /* To avoid auto-zoom on mobile Safari */
+  margin: 12px 0 24px 0;
+  min-width: min(300px, 60vw);
   outline: 2px solid rgba(0, 0, 0, 0.1) !important;
   padding: 12px;
 }
@@ -107,6 +114,7 @@ body.popover-open a { pointer-events: none; }
   color: white;
   cursor: pointer;
   display: block;
+  font-size: var(--font-size-main);
   font-weight: 600;
   margin: 24px 0 0 0;
   padding: 12px;
@@ -143,10 +151,10 @@ body.popover-open a { pointer-events: none; }
   overflow-wrap: break-word;
 }
 
-.article.importance-1 h2 { font-size: 18px; line-height: 22px; }
-.article.importance-2 h2 { font-size: 26px; line-height: 30px; }
-.article.importance-3 h2 { font-size: 36px; line-height: 40px; }
-.article.importance-4 h2 { font-size: 46px; line-height: 50px; }
+.article.score-1 h2 { font-size: 18px; line-height: 24px; }
+.article.score-2 h2 { font-size: 26px; line-height: 32px; }
+.article.score-3 h2 { font-size: 36px; line-height: 42px; }
+.article.score-4 h2 { font-size: 46px; line-height: 52px; }
 
 .article .description {
   margin: 0.5em 0;
@@ -169,7 +177,7 @@ body.popover-open a { pointer-events: none; }
 
 .rating-circle {
   background: rgb(from currentColor r g b / 0.25);
-  border-radius: 50%;
+  border-radius: 999px;
   cursor: pointer;
   height: 12px;
   width: 12px;
@@ -194,8 +202,4 @@ footer {
 
 footer div {
   margin: 1rem 0;
-}
-
-footer a {
-  margin: 0 1rem;
 }

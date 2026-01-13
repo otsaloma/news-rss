@@ -16,24 +16,19 @@ const FEEDS = [
 ];
 
 const ARTICLE_MAX_AGE = 86400;
-const JUNK_THRESHOLD = 20;
+const JUNK_THRESHOLD = 25;
 const RATING_SCORES = [10, 30, 50, 70, 90];
 const RATINGS_MAX_COUNT = 200;
 
 function getColumnCount() {
-    const width = window.innerWidth;
-    if (width < 480) return 1;
-    if (width < 768) return 2;
-    if (width < 1024) return 4;
+    if (window.innerWidth <  480) return 1;
+    if (window.innerWidth <  768) return 2;
+    if (window.innerWidth < 1024) return 4;
     return 6;
 }
 
 const COLUMN_COUNT = getColumnCount();
 document.documentElement.style.setProperty("--column-count", COLUMN_COUNT);
-if (COLUMN_COUNT <= 2) {
-    document.documentElement.style.setProperty("--body-padding", "1.25rem 1.5rem");
-    document.documentElement.style.setProperty("--popover-max-width", "90vw");
-}
 
 // Pending rating waiting for popover input.
 let pendingRating = null;
@@ -184,8 +179,7 @@ function showRatingPopover(article, value) {
     const popover = document.getElementById("rating-popover");
     const label = document.getElementById("rating-reason-label");
     label.textContent = value > article.score ?
-        "what specifically is good about it?" :
-        "what specifically is bad about it?";
+        "what's good about it?" : "what's bad about it?";
     const input = document.getElementById("rating-reason");
     input.value = "";
     popover.showPopover();
@@ -218,8 +212,7 @@ function onRatingSaveClick(event) {
 }
 
 function onRatingReasonKeydown(event) {
-    if (event.key === "Enter")
-        onRatingSaveClick(event);
+    event.key === "Enter" && onRatingSaveClick(event);
 }
 
 function onPopoverToggle(event) {
@@ -230,8 +223,8 @@ function showCredentialsPopover() {
     const popover = document.getElementById("credentials-popover");
     const keyInput = document.getElementById("credentials-key");
     const tokenInput = document.getElementById("credentials-token");
-    keyInput.value = "";
-    tokenInput.value = "";
+    keyInput.value = ANTHROPIC_API_KEY || "";
+    tokenInput.value = PROXY_TOKEN || "";
     popover.showPopover();
     keyInput.focus();
 }
@@ -249,8 +242,7 @@ function onCredentialsSaveClick(event) {
 }
 
 function onCredentialsKeydown(event) {
-    if (event.key === "Enter")
-        onCredentialsSaveClick(event);
+    event.key === "Enter" && onCredentialsSaveClick(event);
 }
 
 function onRatingHover(circles, index) {
@@ -280,14 +272,13 @@ function render(articles, grid, muted=false) {
     // Render articles in grid like a newspaper front page.
     grid.innerHTML = "";
     articles.forEach(article => {
-        // Map score 0–100 to importance 1–4 (font size).
+        // Map score 0–100 to importance 1–4 and scale based on that.
         const importance = Math.max(1, Math.floor(article.score / 20));
-        // Cap column span at available columns.
         const size = Math.min(importance, COLUMN_COUNT);
         const cell = document.createElement("div");
         cell.className = "article";
         cell.classList.add(`size-${size}`);
-        cell.classList.add(`importance-${importance}`);
+        cell.classList.add(`score-${importance}`);
         if (muted) cell.classList.add("muted");
         const title = document.createElement("h2");
         const link = document.createElement("a");
@@ -320,6 +311,7 @@ function render(articles, grid, muted=false) {
 }
 
 function renderAll(articles) {
+    console.log("Articles:", articles);
     const visible = articles.filter(x => x.score >= JUNK_THRESHOLD);
     const junkpile = articles.filter(x => x.score < JUNK_THRESHOLD);
     render(visible, document.getElementById("grid"), false);
@@ -357,15 +349,11 @@ function getFeedUrl(url) {
 }
 
 function loadArticles() {
-    // XXX: Cache in session storage while we're mostly just testing.
     const cached = sessionStorage.getItem("articles");
     if (cached) {
         console.log("Loading articles from cache...");
         const articles = JSON.parse(cached);
-        console.log(articles);
         renderAll(articles);
-        const footer = document.querySelector("footer");
-        footer.classList.toggle("hidden", false);
     } else {
         const busy = document.getElementById("busy");
         busy.classList.toggle("hidden", false);
@@ -378,11 +366,8 @@ function loadArticles() {
             .then(articles => score(articles))
             .then(articles => {
                 sessionStorage.setItem("articles", JSON.stringify(articles));
-                console.log(articles);
                 renderAll(articles);
                 busy.classList.toggle("hidden", true);
-                const footer = document.querySelector("footer");
-                footer.classList.toggle("hidden", false);
             });
     }
 }

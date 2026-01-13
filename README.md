@@ -6,10 +6,10 @@ multiple RSS feeds, filter and score them using using AI/LLM and
 dynamically lay out a web page resembling a newspaper front page.
 
 The app learns over time which news the user is interested in and which
-not. Articles can be rated by the user, record of which
-persists in local storage and is rendered as few-shot examples in the
-LLM prompt to affect subsequent article filtering and scoring. There is
-no backend. There is no state apart from local storage in the browser.
+not. Articles can be rated by the user, record of which persists in
+local storage and is rendered as few-shot examples in the LLM prompt to
+affect subsequent article filtering and scoring. There is no backend.
+There is no state apart from local storage in the browser.
 
 Articles in order of recency, size scaled by score:
 ![screenshot](screenshot.png)

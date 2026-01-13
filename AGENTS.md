@@ -23,8 +23,8 @@ AGENTS.md
 
 ## HTML
 
-* Assign and use `id`s for important elements that appear only once
-* Assign and use `class`es for important elements that appear multiple times
+* Assign and use ids for important elements that appear only once
+* Assign and use classes for important elements that appear multiple times
 * Indent with two spaces
 
 ## Python
