@@ -1,11 +1,16 @@
 /* -*- coding: utf-8-unix -*- */
 
+@font-face {
+  font-family: "EB Garamond";
+  src: url("fonts/EBGaramond-Bold.otf") format("opentype");
+}
+
 :root {
   --color-background: #fcfcf0;
   --color-orange: #ff7800;
   --color-text: #374151;
   --font-family-sans-serif: Avenir Next, system-ui, sans-serif;
-  --font-family-serif: EB Garamond, Apple Garamond, serif;
+  --font-family-serif: EB Garamond, serif;
   --font-size-main: 16px;
 }
 
@@ -128,14 +133,14 @@ body.popover-open a { pointer-events: none; }
 
 .article h2 {
   font-family: var(--font-family-serif);
-  line-height: 1.15;
+  font-weight: 700;
   margin: 0 0 0.5em 0;
 }
 
-.article.importance-1 h2 { font-size: 16px; }
-.article.importance-2 h2 { font-size: 26px; }
-.article.importance-3 h2 { font-size: 36px; }
-.article.importance-4 h2 { font-size: 46px; }
+.article.importance-1 h2 { font-size: 18px; line-height: 22px; }
+.article.importance-2 h2 { font-size: 26px; line-height: 30px; }
+.article.importance-3 h2 { font-size: 36px; line-height: 40px; }
+.article.importance-4 h2 { font-size: 46px; line-height: 50px; }
 
 .article .description {
   margin: 0.5em 0;

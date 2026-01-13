@@ -45,6 +45,8 @@ dist-html:
 	$(MAKE) check clean
 	mkdir html
 	cp *.css *.html *.js *.png *.svg html
+	cp fonts/*.otf html
+	sed -ri "s|fonts/||g" html/*.css
 	sed -ri "s|\?v=dev\"|?v=$(VERSION)\"|g" html/*.html
 	! grep "?v=dev" html/*.html
 	./bundle-assets.py html/*.html
