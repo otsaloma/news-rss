@@ -18,7 +18,7 @@ const FEEDS = [
 const ARTICLE_MAX_AGE = 86400;
 const JUNK_THRESHOLD = 20;
 const RATING_SCORES = [10, 30, 50, 70, 90];
-const VOTES_MAX_COUNT = 200;
+const RATINGS_MAX_COUNT = 200;
 
 function getColumnCount() {
     const width = window.innerWidth;
@@ -35,8 +35,8 @@ if (COLUMN_COUNT <= 2) {
     document.documentElement.style.setProperty("--popover-max-width", "90vw");
 }
 
-// Pending vote waiting for popover input.
-let pendingVote = null;
+// Pending rating waiting for popover input.
+let pendingRating = null;
 
 function connect(target, type, listener) {
     if (typeof target === "string")
@@ -119,8 +119,8 @@ Example: [0, 2, 5, 7]
     });
 }
 
-function getVotes() {
-    return JSON.parse(localStorage.getItem("votes") || "{}");
+function getRatings() {
+    return JSON.parse(localStorage.getItem("ratings") || "{}");
 }
 
 function score(articles) {
@@ -130,9 +130,9 @@ function score(articles) {
     const dump = articles.map((article, i) =>
         `${i}. ${article.title} — ${article.descriptionShort}`
     ).join("\n");
-    const votes = getVotes();
-    const examples = Object.values(votes).map(vote => {
-        return `- ${vote.title} — ${vote.descriptionShort} → ${vote.vote} (reason: ${vote.voteReason})`;
+    const ratings = getRatings();
+    const examples = Object.values(ratings).map(r => {
+        return `- ${r.title} — ${r.descriptionShort} → ${r.rating} (reason: ${r.ratingReason})`;
     }).join("\n");
     const prompt = `
 You are given a list of news articles.
@@ -179,47 +179,47 @@ Example: [85, 17, 53, 41]
     });
 }
 
-function showVotePopover(article, value) {
-    pendingVote = {article: article, value: value};
-    const popover = document.getElementById("vote-popover");
-    const label = document.getElementById("vote-reason-label");
+function showRatingPopover(article, value) {
+    pendingRating = {article: article, value: value};
+    const popover = document.getElementById("rating-popover");
+    const label = document.getElementById("rating-reason-label");
     label.textContent = value > article.score ?
         "what specifically is good about it?" :
         "what specifically is bad about it?";
-    const input = document.getElementById("vote-reason");
+    const input = document.getElementById("rating-reason");
     input.value = "";
     popover.showPopover();
     input.focus();
 }
 
-function saveVote(article, value, reason) {
-    const votes = getVotes();
-    const votedAt = Math.floor(Date.now() / 1000);
-    console.log("Voting", article.url, value, reason);
-    votes[article.url] = {...article, vote: value, votedAt: votedAt, voteReason: reason};
-    // Drop oldest votes if VOTES_MAX_COUNT exceeded.
-    const entries = Object.entries(votes)
-          .sort((a, b) => b[1].votedAt - a[1].votedAt)
-          .slice(0, VOTES_MAX_COUNT);
+function saveRating(article, value, reason) {
+    const ratings = getRatings();
+    const ratedAt = Math.floor(Date.now() / 1000);
+    console.log("Rating", article.url, value, reason);
+    ratings[article.url] = {...article, rating: value, ratedAt: ratedAt, ratingReason: reason};
+    // Drop oldest ratings if RATINGS_MAX_COUNT exceeded.
+    const entries = Object.entries(ratings)
+          .sort((a, b) => b[1].ratedAt - a[1].ratedAt)
+          .slice(0, RATINGS_MAX_COUNT);
 
     const filtered = Object.fromEntries(entries);
-    localStorage.setItem("votes", JSON.stringify(filtered));
+    localStorage.setItem("ratings", JSON.stringify(filtered));
 }
 
-function onVoteSaveClick(event) {
+function onRatingSaveClick(event) {
     event.preventDefault();
-    if (!pendingVote) return;
-    const {article, value} = pendingVote;
-    const reason = document.getElementById("vote-reason").value.trim();
-    saveVote(article, value, reason);
-    document.getElementById("vote-popover").hidePopover();
-    notify(`Voted ${article.score} → ${value}`);
-    pendingVote = null;
+    if (!pendingRating) return;
+    const {article, value} = pendingRating;
+    const reason = document.getElementById("rating-reason").value.trim();
+    saveRating(article, value, reason);
+    document.getElementById("rating-popover").hidePopover();
+    notify(`Rated ${article.score} → ${value}`);
+    pendingRating = null;
 }
 
-function onVoteReasonKeydown(event) {
+function onRatingReasonKeydown(event) {
     if (event.key === "Enter")
-        onVoteSaveClick(event);
+        onRatingSaveClick(event);
 }
 
 function onPopoverToggle(event) {
@@ -263,8 +263,8 @@ function onRatingLeave(circles) {
 
 function onRatingClick(event, article, rating) {
     event.preventDefault();
-    const vote = RATING_SCORES[rating-1];
-    showVotePopover(article, vote);
+    const ratingValue = RATING_SCORES[rating-1];
+    showRatingPopover(article, ratingValue);
 }
 
 function createRatingCircle(circles, index, article) {
@@ -346,7 +346,7 @@ function onClearCacheClick(event) {
 function onClearRatingsClick(event) {
     event.preventDefault();
     if (!confirm("Are you sure you want to clear all your ratings?")) return;
-    localStorage.removeItem("votes");
+    localStorage.removeItem("ratings");
     notify("Ratings cleared!");
 }
 
@@ -393,9 +393,9 @@ function main() {
     connect("credentials-save", "click", onCredentialsSaveClick);
     connect("credentials-token", "keydown", onCredentialsKeydown);
     connect("junk-toggle", "click", onJunkToggleClick);
-    connect("vote-popover", "toggle", onPopoverToggle);
-    connect("vote-reason", "keydown", onVoteReasonKeydown);
-    connect("vote-save", "click", onVoteSaveClick);
+    connect("rating-popover", "toggle", onPopoverToggle);
+    connect("rating-reason", "keydown", onRatingReasonKeydown);
+    connect("rating-save", "click", onRatingSaveClick);
     if (!ANTHROPIC_API_KEY || !PROXY_TOKEN) {
         showCredentialsPopover();
     } else {
