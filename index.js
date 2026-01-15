@@ -330,7 +330,7 @@ function renderAll(articles) {
     const visible = articles.filter(x => x.score >= JUNK_THRESHOLD);
     const junkpile = articles.filter(x => x.score < JUNK_THRESHOLD);
     const h1 = document.querySelector("h1");
-    h1.textContent = `${visible.length} articles + ${junkpile.length} hidden`;
+    h1.textContent = `${visible.length} Articles & ${junkpile.length} Hidden`;
     h1.classList.remove("hidden");
     render(visible, document.getElementById("grid"), false);
     render(junkpile, document.getElementById("junk-grid"), true);
