@@ -50,6 +50,13 @@ function setProgress(text) {
     document.getElementById("progress").textContent = text;
 }
 
+function showError(message) {
+    document.getElementById("busy").classList.toggle("hidden", true);
+    const h1 = document.querySelector("h1");
+    h1.textContent = message;
+    h1.classList.remove("hidden");
+}
+
 function parse(texts) {
     setProgress("parsing...");
     // Parse feed texts to a single list of articles.
@@ -380,6 +387,14 @@ function loadArticles() {
                 sessionStorage.setItem("articles", JSON.stringify(articles));
                 renderAll(articles);
                 busy.classList.toggle("hidden", true);
+            })
+            .catch(error => {
+                console.log("Error:", error);
+                if (error.status === 529) {
+                    showError("anthropic api overloaded (529)");
+                } else {
+                    throw error;
+                }
             });
     }
 }
