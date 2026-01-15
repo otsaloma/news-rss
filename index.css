@@ -57,11 +57,11 @@ a:hover {
 }
 
 h1 {
-  color: rgb(from var(--color-text) r g b / 0.5);
   font-family: var(--font-family-serif);
   font-size: 26px;
   font-weight: 700;
   margin: 0 0 1rem 0;
+  opacity: 0.5;
   text-align: center;
 }
 
