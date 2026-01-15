@@ -1,6 +1,10 @@
 AGENTS.md
 =========
 
+news-rss is a client-side web app to display news articles fetched from
+RSS feeds and deduplicated and scored by an LLM. The main implementation
+is in files `index.css`, `index.html` and `index.js`.
+
 ## General
 
 * Don't worry about catching errors (as we have no real users)
