@@ -46,7 +46,12 @@ function notify(message) {
     setTimeout(() => toast.classList.toggle("hidden", true), 2000);
 }
 
+function setProgress(text) {
+    document.getElementById("progress").textContent = text;
+}
+
 function parse(texts) {
+    setProgress("parsing...");
     // Parse feed texts to a single list of articles.
     return Promise.all(texts.map(text => {
         const parser = new RSSParser();
@@ -76,6 +81,7 @@ function filterByPublishedAt(articles) {
 }
 
 function deduplicate(articles) {
+    setProgress("deduplicating...");
     // Deduplicate articles to include only one source per event.
     if (articles.length < 2)
         return Promise.resolve(articles);
@@ -119,6 +125,7 @@ function getRatings() {
 }
 
 function score(articles) {
+    setProgress("scoring...");
     // Assign an importance score (0–100) for each of articles.
     if (articles.length === 0)
         return Promise.resolve(articles);
@@ -311,6 +318,7 @@ function render(articles, grid, muted=false) {
 }
 
 function renderAll(articles) {
+    setProgress("rendering...");
     console.log("Articles:", articles);
     const visible = articles.filter(x => x.score >= JUNK_THRESHOLD);
     const junkpile = articles.filter(x => x.score < JUNK_THRESHOLD);
@@ -360,6 +368,7 @@ function loadArticles() {
     } else {
         const busy = document.getElementById("busy");
         busy.classList.toggle("hidden", false);
+        setProgress("fetching...");
         const feeds = FEEDS.map(getFeedUrl);
         Promise.all(feeds.map(url => fetch(url).then(response => response.text())))
             .then(texts => parse(texts))

@@ -51,6 +51,11 @@ a:hover {
   display: none !important;
 }
 
+#progress {
+  margin-top: 1rem;
+  text-align: center;
+}
+
 h1 {
   color: rgb(from var(--color-text) r g b / 0.5);
   font-family: var(--font-family-serif);
