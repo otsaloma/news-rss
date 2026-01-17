@@ -175,6 +175,11 @@ body.popover-open a { pointer-events: none; }
   margin: 0.5em 0;
 }
 
+/* Make the layout tighter by showing only the title
+   for the least important, single-column articles.
+   But keep descriptions in the junkpile. */
+#grid .article.score-1 .description { display: none; }
+
 .article .meta {
   font-size: 12px;
   margin: 0.5em 0;
