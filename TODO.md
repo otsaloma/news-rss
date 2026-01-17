@@ -1,6 +1,5 @@
 TODO
 ====
 
-* Allow setting junkpile threshold (current 20)
-* Document tradeoffs
+* Allow setting JUNK_THRESHOLD, save in local storage?
 * Document getting started
