@@ -102,7 +102,9 @@ Return a JSON array of indices to KEEP (one article from each group of duplicate
 Of duplicates, prefer to keep articles from known free public services such as yle.fi.
 
 Articles:
+"""
 ${dump}
+"""
 
 Think step by step and briefly state your reasoning.
 Then on your final line, return a JSON array of indices to KEEP.
@@ -137,11 +139,11 @@ function score(articles) {
     if (articles.length === 0)
         return Promise.resolve(articles);
     const dump = articles.map((article, i) =>
-        `${i}. ${article.title} — ${article.descriptionShort}`
+        `${i+1}. ${article.title} — ${article.descriptionShort}`
     ).join("\n");
     const ratings = getRatings();
-    const examples = Object.values(ratings).map(r => {
-        return `- ${r.title} — ${r.descriptionShort} → ${r.rating} (reason: ${r.ratingReason})`;
+    const examples = Object.values(ratings).map(x => {
+        return `- ${x.title} — ${x.descriptionShort} → ${x.rating} (reason: ${x.ratingReason})`;
     }).join("\n");
     const prompt = `
 You are given a list of news articles.
@@ -158,17 +160,25 @@ General guidelines:
 - Favor insightful commentary (editorials and letters from readers)
 
 Examples of previously rated articles:
+"""
 ${examples}
+"""
 
 Articles:
+"""
 ${dump}
+"""
 
-Think step by step and briefly state your reasoning.
 First summarize the patterns you see in the previously rated examples.
-Then summarize how those patterns apply to the given articles.
-Then on your final line, return a JSON array of scores (0–100), one per article in order.
-You are not allowed to omit the final JSON array.
-Example: [85, 17, 53, 41]
+Then score each article using this exact format (one line per article):
+"""
+1. brief reasoning → score
+2. brief reasoning → score
+3. brief reasoning → score
+...and so on for all ${articles.length} articles.
+"""
+You are not allowed to use any other format.
+Finally check that you have scored each article.
 `.trim();
     console.log(prompt);
     const client = new Anthropic({
@@ -182,9 +192,24 @@ Example: [85, 17, 53, 41]
     }).then(data => {
         const content = data.content[0].text.trim();
         console.log(content);
-        const matches = [...content.matchAll(/\[[\d,\s]+\]/g)];
-        const scores = JSON.parse(matches[matches.length-1]);
-        return articles.map((article, i) => ({...article, score: scores[i] || 50}));
+        const scores = [];
+        for (const line of content.split("\n")) {
+            const match = line.match(/^(\d+)\..+?→\s*(\d+)/);
+            if (!match) continue;
+            const index = parseInt(match[1]) - 1;
+            const score = parseInt(match[2]);
+            if (score < 0) continue;
+            if (score > 100) continue;
+            scores[index] = score;
+        }
+        return articles.map((article, i) => {
+            let score = scores[i];
+            if (score === undefined) {
+                console.log(`No score for article ${i+1}, using 33`);
+                score = 33;
+            }
+            return {...article, score: score};
+        });
     });
 }
 
