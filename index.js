@@ -264,30 +264,30 @@ function onPopoverToggle(event) {
     document.body.classList.toggle("popover-open", event.newState === "open");
 }
 
-function showCredentialsPopover() {
-    const popover = document.getElementById("credentials-popover");
-    const keyInput = document.getElementById("credentials-key");
-    const tokenInput = document.getElementById("credentials-token");
+function showConfigPopover() {
+    const popover = document.getElementById("config-popover");
+    const keyInput = document.getElementById("config-key");
+    const tokenInput = document.getElementById("config-token");
     keyInput.value = ANTHROPIC_API_KEY || "";
     tokenInput.value = PROXY_TOKEN || "";
     popover.showPopover();
     keyInput.focus();
 }
 
-function onCredentialsSaveClick(event) {
+function onConfigSaveClick(event) {
     event.preventDefault();
-    const key = document.getElementById("credentials-key").value.trim();
-    const token = document.getElementById("credentials-token").value.trim();
+    const key = document.getElementById("config-key").value.trim();
+    const token = document.getElementById("config-token").value.trim();
     ANTHROPIC_API_KEY = key;
     PROXY_TOKEN = token;
     localStorage.setItem("ANTHROPIC_API_KEY", key);
     localStorage.setItem("PROXY_TOKEN", token);
-    document.getElementById("credentials-popover").hidePopover();
+    document.getElementById("config-popover").hidePopover();
     key && token && loadArticles();
 }
 
-function onCredentialsKeydown(event) {
-    event.key === "Enter" && onCredentialsSaveClick(event);
+function onConfigKeydown(event) {
+    event.key === "Enter" && onConfigSaveClick(event);
 }
 
 function onRatingHover(circles, index) {
@@ -433,16 +433,16 @@ function loadArticles() {
 function main() {
     connect("clear-cache", "click", onClearCacheClick);
     connect("clear-ratings", "click", onClearRatingsClick);
-    connect("credentials-key", "keydown", onCredentialsKeydown);
-    connect("credentials-popover", "toggle", onPopoverToggle);
-    connect("credentials-save", "click", onCredentialsSaveClick);
-    connect("credentials-token", "keydown", onCredentialsKeydown);
+    connect("config-key", "keydown", onConfigKeydown);
+    connect("config-popover", "toggle", onPopoverToggle);
+    connect("config-save", "click", onConfigSaveClick);
+    connect("config-token", "keydown", onConfigKeydown);
     connect("junk-toggle", "click", onJunkToggleClick);
     connect("rating-popover", "toggle", onPopoverToggle);
     connect("rating-reason", "keydown", onRatingReasonKeydown);
     connect("rating-save", "click", onRatingSaveClick);
     if (!ANTHROPIC_API_KEY || !PROXY_TOKEN) {
-        showCredentialsPopover();
+        showConfigPopover();
     } else {
         loadArticles();
     }
