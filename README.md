@@ -17,6 +17,9 @@ Articles in order of recency, size scaled by score:
 Low score articles behind a toggle, hidden by default:
 ![screenshot](screenshot-hidden.png)
 
+Initial configuration:
+![screenshot](screenshot-config.png)
+
 ## Getting Started
 
 You need an Anthropic API key from <https://platform.claude.com/settings/keys>
