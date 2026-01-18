@@ -290,7 +290,7 @@ function onConfigSaveClick(event) {
     localStorage.setItem("FEEDS", JSON.stringify(feeds));
     localStorage.setItem("JUNK_THRESHOLD", junkThreshold);
     document.getElementById("config-popover").hidePopover();
-    key && token && feeds && loadArticles();
+    location.reload();
 }
 
 function onRatingHover(circles, index) {
@@ -438,6 +438,7 @@ function main() {
     connect("clear-ratings", "click", onClearRatingsClick);
     connect("config-popover", "toggle", onPopoverToggle);
     connect("config-save", "click", onConfigSaveClick);
+    connect("edit-settings", "click", showConfigPopover);
     connect("junk-toggle", "click", onJunkToggleClick);
     connect("rating-popover", "toggle", onPopoverToggle);
     connect("rating-reason", "keydown", onRatingReasonKeydown);
