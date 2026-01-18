@@ -113,12 +113,34 @@ body.popover-open a { pointer-events: none; }
   display: block;
   font-size: 16px; /* To avoid auto-zoom on mobile Safari */
   margin: 12px 0 24px 0;
-  min-width: min(300px, 60vw);
+  min-width: min(400px, 60vw);
   outline: 2px solid rgba(0, 0, 0, 0.1) !important;
   padding: 12px;
 }
 
+.popover input[type="number"] {
+  text-align: center;
+}
+
 .popover input:focus {
+  outline: 2px solid rgba(0, 0, 0, 0.3) !important;
+}
+
+.popover textarea {
+  background: inherit;
+  border-radius: 12px;
+  border: none !important;
+  color: inherit;
+  display: block;
+  font-size: 16px; /* To avoid auto-zoom on mobile Safari */
+  margin: 12px 0 24px 0;
+  min-width: min(400px, 60vw);
+  outline: 2px solid rgba(0, 0, 0, 0.1) !important;
+  padding: 12px;
+  resize: vertical;
+}
+
+.popover textarea:focus {
   outline: 2px solid rgba(0, 0, 0, 0.3) !important;
 }
 

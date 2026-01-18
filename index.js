@@ -15,14 +15,15 @@ if (PARAMS.get("proxy-local")) {
 }
 console.log(`Using proxy ${PROXY}`);
 
-const FEEDS = [
+let FEEDS = JSON.parse(localStorage.getItem("FEEDS")) || [
     "https://feeds.kauppalehti.fi/rss/main",
     "https://www.hs.fi/rss/teasers/etusivu.xml",
     "https://yle.fi/rss/uutiset/paauutiset",
 ];
 
+let JUNK_THRESHOLD = parseInt(localStorage.getItem("JUNK_THRESHOLD")) || 25;
+
 const ARTICLE_MAX_AGE = 86400;
-const JUNK_THRESHOLD = 25;
 const RATING_SCORES = [10, 30, 50, 70, 90];
 const RATINGS_MAX_COUNT = 200;
 
@@ -266,28 +267,30 @@ function onPopoverToggle(event) {
 
 function showConfigPopover() {
     const popover = document.getElementById("config-popover");
-    const keyInput = document.getElementById("config-key");
-    const tokenInput = document.getElementById("config-token");
-    keyInput.value = ANTHROPIC_API_KEY || "";
-    tokenInput.value = PROXY_TOKEN || "";
+    document.getElementById("config-key").value = ANTHROPIC_API_KEY || "";
+    document.getElementById("config-token").value = PROXY_TOKEN || "";
+    document.getElementById("config-feeds").value = FEEDS.join("\n");
+    document.getElementById("config-junk-threshold").value = JUNK_THRESHOLD;
     popover.showPopover();
-    keyInput.focus();
+    document.getElementById("config-key").focus();
 }
 
 function onConfigSaveClick(event) {
     event.preventDefault();
     const key = document.getElementById("config-key").value.trim();
     const token = document.getElementById("config-token").value.trim();
+    const feeds = document.getElementById("config-feeds").value.split("\n").map(x => x.trim()).filter(x => x);
+    const junkThreshold = parseInt(document.getElementById("config-junk-threshold").value);
     ANTHROPIC_API_KEY = key;
     PROXY_TOKEN = token;
+    FEEDS = feeds;
+    JUNK_THRESHOLD = junkThreshold;
     localStorage.setItem("ANTHROPIC_API_KEY", key);
     localStorage.setItem("PROXY_TOKEN", token);
+    localStorage.setItem("FEEDS", JSON.stringify(feeds));
+    localStorage.setItem("JUNK_THRESHOLD", junkThreshold);
     document.getElementById("config-popover").hidePopover();
-    key && token && loadArticles();
-}
-
-function onConfigKeydown(event) {
-    event.key === "Enter" && onConfigSaveClick(event);
+    key && token && feeds && loadArticles();
 }
 
 function onRatingHover(circles, index) {
@@ -433,10 +436,8 @@ function loadArticles() {
 function main() {
     connect("clear-cache", "click", onClearCacheClick);
     connect("clear-ratings", "click", onClearRatingsClick);
-    connect("config-key", "keydown", onConfigKeydown);
     connect("config-popover", "toggle", onPopoverToggle);
     connect("config-save", "click", onConfigSaveClick);
-    connect("config-token", "keydown", onConfigKeydown);
     connect("junk-toggle", "click", onJunkToggleClick);
     connect("rating-popover", "toggle", onPopoverToggle);
     connect("rating-reason", "keydown", onRatingReasonKeydown);
