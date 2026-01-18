@@ -3,11 +3,17 @@
 import Anthropic from "https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.71.2/+esm";
 
 const PARAMS = new URLSearchParams(window.location.search);
-const PROXY = "https://ep3tfancwtwxecots3p6txr3ka0xfcrr.lambda-url.eu-north-1.on.aws/";
 
 // Load needed key and token from URL parameters or local storage.
 let ANTHROPIC_API_KEY = PARAMS.get("key") || localStorage.getItem("ANTHROPIC_API_KEY");
 let PROXY_TOKEN = PARAMS.get("token") || localStorage.getItem("PROXY_TOKEN");
+
+let PROXY = "https://ep3tfancwtwxecots3p6txr3ka0xfcrr.lambda-url.eu-north-1.on.aws/";
+if (PARAMS.get("proxy-local")) {
+    PROXY = "http://localhost:8001/";
+    PROXY_TOKEN = "not-needed-locally";
+}
+console.log(`Using proxy ${PROXY}`);
 
 const FEEDS = [
     "https://feeds.kauppalehti.fi/rss/main",

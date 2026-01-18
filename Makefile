@@ -69,6 +69,9 @@ deploy-html:
 run:
 	$(PYTHON) -m http.server
 
+run-proxy:
+	$(PYTHON) proxy-local.py
+
 venv:
 	rm -rf venv
 	$(PYTHON) -m venv venv
@@ -76,4 +79,4 @@ venv:
 	  pip install -U pip setuptools wheel && \
 	  pip install -r requirements.txt
 
-.PHONY: check clean dist-lambda deploy-lambda dist-html deploy-html run venv
+.PHONY: check clean dist-lambda deploy-lambda dist-html deploy-html run run-proxy venv
