@@ -128,7 +128,7 @@ body.popover-open a { pointer-events: none; }
 
 .popover textarea {
   background: inherit;
-  border-radius: 12px;
+  border-radius: 18px;
   border: none !important;
   color: inherit;
   display: block;
