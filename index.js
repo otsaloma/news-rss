@@ -266,7 +266,7 @@ function onPopoverToggle(event) {
 }
 
 function showConfigPopover(event) {
-    event.preventDefault();
+    event && event.preventDefault();
     const popover = document.getElementById("config-popover");
     document.getElementById("config-key").value = ANTHROPIC_API_KEY || "";
     document.getElementById("config-token").value = PROXY_TOKEN || "";
