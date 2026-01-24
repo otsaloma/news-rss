@@ -52,6 +52,21 @@ a:hover {
   display: none !important;
 }
 
+header {
+  font-size: 100px;
+  font-weight: 900;
+  line-height: 1;
+  margin: 2rem 0;
+}
+
+header a:hover {
+  border-bottom: 20px solid rgb(from var(--color-orange) r g b / 0.5);
+}
+
+header div {
+  margin: 1rem 0;
+}
+
 #progress {
   margin-top: 1rem;
   text-align: center;

@@ -403,51 +403,57 @@ function getFeedUrl(url) {
 }
 
 function loadArticles() {
-    const cached = sessionStorage.getItem("articles");
-    if (cached) {
-        console.log("Loading articles from cache...");
-        const articles = JSON.parse(cached);
-        renderAll(articles);
-    } else {
-        const busy = document.getElementById("busy");
-        busy.classList.toggle("hidden", false);
-        setProgress("fetching...");
-        const feeds = FEEDS.map(getFeedUrl);
-        Promise.all(feeds.map(url => fetch(url).then(response => response.text())))
-            .then(texts => parse(texts))
-            .then(articles => articles.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt)))
-            .then(articles => filterByPublishedAt(articles))
-            .then(articles => deduplicate(articles))
-            .then(articles => score(articles))
-            .then(articles => {
-                sessionStorage.setItem("articles", JSON.stringify(articles));
-                renderAll(articles);
-                busy.classList.toggle("hidden", true);
-            })
-            .catch(error => {
-                console.log(error);
-                showError(error);
-            });
-    }
+    const header = document.querySelector("header");
+    header.classList.toggle("hidden", true);
+    const busy = document.getElementById("busy");
+    busy.classList.toggle("hidden", false);
+    setProgress("fetching...");
+    const feeds = FEEDS.map(getFeedUrl);
+    Promise.all(feeds.map(url => fetch(url).then(response => response.text())))
+        .then(texts => parse(texts))
+        .then(articles => articles.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt)))
+        .then(articles => filterByPublishedAt(articles))
+        .then(articles => deduplicate(articles))
+        .then(articles => score(articles))
+        .then(articles => {
+            sessionStorage.setItem("articles", JSON.stringify(articles));
+            renderAll(articles);
+            busy.classList.toggle("hidden", true);
+        })
+        .catch(error => {
+            console.log(error);
+            showError(error);
+        });
 }
 
-function main() {
+function onLoadClick(event) {
+    event.preventDefault();
+    loadArticles();
+}
+
+(function() {
     connect("clear-cache", "click", onClearCacheClick);
     connect("clear-ratings", "click", onClearRatingsClick);
     connect("config-popover", "toggle", onPopoverToggle);
     connect("config-save", "click", onConfigSaveClick);
     connect("edit-settings", "click", showConfigPopover);
     connect("junk-toggle", "click", onJunkToggleClick);
+    connect("load", "click", onLoadClick);
     connect("rating-popover", "toggle", onPopoverToggle);
     connect("rating-reason", "keydown", onRatingReasonKeydown);
     connect("rating-save", "click", onRatingSaveClick);
     if (!ANTHROPIC_API_KEY || !PROXY_TOKEN) {
+        // Prompt for credentials on first use.
         showConfigPopover();
+    } else if (sessionStorage.getItem("articles")) {
+        // Render articles from cache.
+        const cached = sessionStorage.getItem("articles");
+        console.log("Loading articles from cache...");
+        const articles = JSON.parse(cached);
+        renderAll(articles);
     } else {
-        loadArticles();
+        // Show load button.
+        const header = document.querySelector("header");
+        header.classList.toggle("hidden", false);
     }
-}
-
-(function() {
-    main();
 })();
