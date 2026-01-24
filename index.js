@@ -424,12 +424,8 @@ function loadArticles() {
                 busy.classList.toggle("hidden", true);
             })
             .catch(error => {
-                console.log("Error:", error);
-                if (error.status === 529) {
-                    showError("anthropic api overloaded (529)");
-                } else {
-                    throw error;
-                }
+                console.log(error);
+                showError(error);
             });
     }
 }
