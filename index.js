@@ -332,6 +332,7 @@ function render(articles, grid, muted=false) {
         const title = document.createElement("h2");
         const link = document.createElement("a");
         link.href = article.url;
+        link.referrerPolicy = "no-referrer";
         link.textContent = article.title;
         link.target = "_blank";
         title.appendChild(link);
