@@ -423,7 +423,7 @@ function loadArticles() {
         .catch(error => {
             console.error(error.error);
             const e = error.error.error; // :–|
-            showError(`Error ${error.status}: ${e.type}: ${e.message}`);
+            showError(`Error ${error.status}: ${e.message}`);
         });
 }
 
