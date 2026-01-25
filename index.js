@@ -421,8 +421,9 @@ function loadArticles() {
             busy.classList.toggle("hidden", true);
         })
         .catch(error => {
-            console.log(error);
-            showError(error);
+            console.error(error.error);
+            const e = error.error.error; // :–|
+            showError(`Error ${error.status}: ${e.type}: ${e.message}`);
         });
 }
 
