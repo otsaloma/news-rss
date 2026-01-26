@@ -78,6 +78,7 @@ function parse(texts) {
                 // Take the first sentence of the description.
                 // Avoid stopping at the common case of initials like F. M. Dostoevsky.
                 descriptionShort: (item.contentSnippet || "").split(/[^A-ZÅÄÖ][.!?] /)[0],
+                image: item.enclosure?.type?.startsWith("image/") ? item.enclosure.url : "",
                 url: item.link || "",
                 host: new URL(item.link || "").hostname,
                 // Take the second last component of host, e.g. www.hs.fi -> hs
