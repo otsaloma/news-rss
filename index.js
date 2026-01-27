@@ -23,6 +23,15 @@ let FEEDS = JSON.parse(localStorage.getItem("FEEDS")) || [
 
 let JUNK_THRESHOLD = parseInt(localStorage.getItem("JUNK_THRESHOLD")) || 25;
 
+// Use the cheapest and fastest model in development, the best in production.
+// https://platform.claude.com/docs/en/about-claude/models/overview
+const MODEL = (window.location.host.startsWith("localhost") ||
+               window.location.host.startsWith("127.0.0.1") ?
+               "claude-haiku-4-5" :
+               "claude-opus-4-5");
+
+console.log(`Using model ${MODEL}`);
+
 const ARTICLE_MAX_AGE = 86400;
 const RATING_SCORES = [10, 30, 50, 70, 90];
 const RATINGS_MAX_COUNT = 200;
@@ -125,7 +134,7 @@ Example: [0, 2, 5, 7]
         dangerouslyAllowBrowser: true
     });
     return client.messages.create({
-        model: "claude-opus-4-5",
+        model: MODEL,
         max_tokens: 5000,
         messages: [{role: "user", content: prompt}],
     }).then(data => {
@@ -194,7 +203,7 @@ Finally check that you have scored each article.
         dangerouslyAllowBrowser: true
     });
     return client.messages.create({
-        model: "claude-opus-4-5",
+        model: MODEL,
         max_tokens: 5000,
         messages: [{role: "user", content: prompt}]
     }).then(data => {
@@ -292,7 +301,7 @@ function onConfigSaveClick(event) {
     localStorage.setItem("FEEDS", JSON.stringify(feeds));
     localStorage.setItem("JUNK_THRESHOLD", junkThreshold);
     document.getElementById("config-popover").hidePopover();
-    location.reload();
+    window.location.reload();
 }
 
 function onRatingHover(circles, index) {
