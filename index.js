@@ -23,13 +23,7 @@ let FEEDS = JSON.parse(localStorage.getItem("FEEDS")) || [
 
 let JUNK_THRESHOLD = parseInt(localStorage.getItem("JUNK_THRESHOLD")) || 25;
 
-// Use the cheapest and fastest model in development, the best in production.
-// https://platform.claude.com/docs/en/about-claude/models/overview
-const MODEL = (window.location.host.startsWith("localhost") ||
-               window.location.host.startsWith("127.0.0.1") ?
-               "claude-haiku-4-5" :
-               "claude-opus-4-5");
-
+const MODEL = "claude-opus-4-5";
 console.log(`Using model ${MODEL}`);
 
 const ARTICLE_MAX_AGE = 86400;
