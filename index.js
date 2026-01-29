@@ -326,7 +326,7 @@ function render(articles, grid, muted=false) {
     grid.innerHTML = "";
     articles.forEach(article => {
         // Map score 0–100 to importance 1–4 and scale based on that.
-        const importance = Math.max(1, Math.floor(article.score / 20));
+        const importance = Math.max(1, Math.min(4, Math.floor(article.score / 20)));
         const size = Math.min(importance, COLUMN_COUNT);
         const cell = document.createElement("div");
         cell.className = "article";
