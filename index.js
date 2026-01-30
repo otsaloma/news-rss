@@ -16,7 +16,6 @@ if (PARAMS.get("proxy-local")) {
 console.log(`Using proxy ${PROXY}`);
 
 let FEEDS = JSON.parse(localStorage.getItem("FEEDS")) || [
-    "https://feeds.kauppalehti.fi/rss/main",
     "https://www.hs.fi/rss/teasers/etusivu.xml",
     "https://yle.fi/rss/uutiset/paauutiset",
 ];
