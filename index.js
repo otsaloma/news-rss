@@ -366,8 +366,8 @@ function render(articles, grid, muted=false) {
 function renderAll(articles) {
     setProgress("rendering...");
     console.log("Articles:", articles);
-    const visible = articles.filter(x => x.score >= JUNK_THRESHOLD);
-    const junkpile = articles.filter(x => x.score < JUNK_THRESHOLD);
+    const visible = articles.filter(x => x.score > JUNK_THRESHOLD);
+    const junkpile = articles.filter(x => x.score <= JUNK_THRESHOLD);
     const h1 = document.querySelector("h1");
     h1.textContent = `${visible.length} Articles & ${junkpile.length} Hidden`;
     h1.classList.remove("hidden");
