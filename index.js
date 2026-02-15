@@ -22,7 +22,7 @@ let FEEDS = JSON.parse(localStorage.getItem("FEEDS")) || [
 
 let JUNK_THRESHOLD = parseInt(localStorage.getItem("JUNK_THRESHOLD")) || 25;
 
-const MODEL = "claude-opus-4-5";
+const MODEL = "claude-opus-4-6";
 console.log(`Using model ${MODEL}`);
 
 const ARTICLE_MAX_AGE = 86400;
