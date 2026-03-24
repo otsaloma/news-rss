@@ -5,8 +5,8 @@ import Anthropic from "https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.71.2/+es
 const PARAMS = new URLSearchParams(window.location.search);
 
 // Load needed key and token from URL parameters or local storage.
-let ANTHROPIC_API_KEY = PARAMS.get("key") || localStorage.getItem("ANTHROPIC_API_KEY");
-let PROXY_TOKEN = PARAMS.get("token") || localStorage.getItem("PROXY_TOKEN");
+let ANTHROPIC_API_KEY = PARAMS.get("key") || localStorage.getItem("news_rss_anthropic_api_key");
+let PROXY_TOKEN = PARAMS.get("token") || localStorage.getItem("news_rss_proxy_token");
 
 let PROXY = "https://ep3tfancwtwxecots3p6txr3ka0xfcrr.lambda-url.eu-north-1.on.aws/";
 if (PARAMS.get("proxy-local")) {
@@ -15,12 +15,12 @@ if (PARAMS.get("proxy-local")) {
 }
 console.log(`Using proxy ${PROXY}`);
 
-let FEEDS = JSON.parse(localStorage.getItem("FEEDS")) || [
+let FEEDS = JSON.parse(localStorage.getItem("news_rss_feeds")) || [
     "https://www.hs.fi/rss/teasers/etusivu.xml",
     "https://yle.fi/rss/uutiset/paauutiset",
 ];
 
-let JUNK_THRESHOLD = parseInt(localStorage.getItem("JUNK_THRESHOLD")) || 25;
+let JUNK_THRESHOLD = parseInt(localStorage.getItem("news_rss_junk_threshold")) || 25;
 
 const MODEL = "claude-opus-4-6";
 console.log(`Using model ${MODEL}`);
@@ -140,7 +140,7 @@ Example: [0, 2, 5, 7]
 }
 
 function getRatings() {
-    return JSON.parse(localStorage.getItem("ratings") || "{}");
+    return JSON.parse(localStorage.getItem("news_rss_ratings") || "{}");
 }
 
 function score(articles) {
@@ -246,7 +246,7 @@ function saveRating(article, value, reason) {
           .slice(0, RATINGS_MAX_COUNT);
 
     const filtered = Object.fromEntries(entries);
-    localStorage.setItem("ratings", JSON.stringify(filtered));
+    localStorage.setItem("news_rss_ratings", JSON.stringify(filtered));
 }
 
 function onRatingSaveClick(event) {
@@ -289,10 +289,10 @@ function onConfigSaveClick(event) {
     PROXY_TOKEN = token;
     FEEDS = feeds;
     JUNK_THRESHOLD = junkThreshold;
-    localStorage.setItem("ANTHROPIC_API_KEY", key);
-    localStorage.setItem("PROXY_TOKEN", token);
-    localStorage.setItem("FEEDS", JSON.stringify(feeds));
-    localStorage.setItem("JUNK_THRESHOLD", junkThreshold);
+    localStorage.setItem("news_rss_anthropic_api_key", key);
+    localStorage.setItem("news_rss_proxy_token", token);
+    localStorage.setItem("news_rss_feeds", JSON.stringify(feeds));
+    localStorage.setItem("news_rss_junk_threshold", junkThreshold);
     document.getElementById("config-popover").hidePopover();
     window.location.reload();
 }
@@ -395,7 +395,7 @@ function onClearCacheClick(event) {
 function onClearRatingsClick(event) {
     event.preventDefault();
     if (!confirm("Are you sure you want to clear all your ratings?")) return;
-    localStorage.removeItem("ratings");
+    localStorage.removeItem("news_rss_ratings");
     notify("Ratings cleared!");
 }
 
