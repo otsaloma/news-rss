@@ -217,7 +217,7 @@ function showRatingPopover(article, value) {
     input.focus();
 }
 
-function onRatingSaveClick(event) {
+function onRatingSubmit(event) {
     event.preventDefault();
     const {article, value} = pendingRating;
     const reason = document.getElementById("rating-reason").value.trim();
@@ -232,10 +232,6 @@ function onRatingSaveClick(event) {
     localStorage.setItem("news_rss_ratings", JSON.stringify(Object.fromEntries(newest)));
     document.getElementById("rating-popover").hidePopover();
     notify(`Rated ${article.score} → ${value}`);
-}
-
-function onRatingReasonKeydown(event) {
-    event.key === "Enter" && onRatingSaveClick(event);
 }
 
 function onPopoverToggle(event) {
@@ -253,7 +249,7 @@ function showConfigPopover(event) {
     document.getElementById("config-key").focus();
 }
 
-function onConfigSaveClick(event) {
+function onConfigSubmit(event) {
     event.preventDefault();
     const key = document.getElementById("config-key").value.trim();
     const token = document.getElementById("config-token").value.trim();
@@ -366,14 +362,13 @@ function onLoadClick(event) {
 (function() {
     connect("clear-cache", "click", onClearCacheClick);
     connect("clear-ratings", "click", onClearRatingsClick);
+    connect("config-popover", "submit", onConfigSubmit);
     connect("config-popover", "toggle", onPopoverToggle);
-    connect("config-save", "click", onConfigSaveClick);
     connect("edit-settings", "click", showConfigPopover);
     connect("junk-toggle", "click", onJunkToggleClick);
     connect("load", "click", onLoadClick);
+    connect("rating-popover", "submit", onRatingSubmit);
     connect("rating-popover", "toggle", onPopoverToggle);
-    connect("rating-reason", "keydown", onRatingReasonKeydown);
-    connect("rating-save", "click", onRatingSaveClick);
     if (!ANTHROPIC_API_KEY || !PROXY_TOKEN) {
         // Prompt for credentials on first use.
         showConfigPopover();
