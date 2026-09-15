@@ -26,7 +26,6 @@ const MODEL = "claude-opus-5";
 console.log(`Using model ${MODEL}`);
 
 const RATING_SCORES = [10, 30, 50, 70, 90];
-const RATINGS_MAX_COUNT = 200;
 
 function getColumnCount() {
     if (window.innerWidth <  480) return 1;
@@ -220,29 +219,21 @@ function showRatingPopover(article, value) {
     input.focus();
 }
 
-function saveRating(article, value, reason) {
-    const ratings = getRatings();
-    const ratedAt = Math.floor(Date.now() / 1000);
-    console.log("Rating", article.url, value, reason);
-    ratings[article.url] = {...article, rating: value, ratedAt: ratedAt, ratingReason: reason};
-    // Drop oldest ratings if RATINGS_MAX_COUNT exceeded.
-    const entries = Object.entries(ratings)
-          .sort((a, b) => b[1].ratedAt - a[1].ratedAt)
-          .slice(0, RATINGS_MAX_COUNT);
-
-    const filtered = Object.fromEntries(entries);
-    localStorage.setItem("news_rss_ratings", JSON.stringify(filtered));
-}
-
 function onRatingSaveClick(event) {
     event.preventDefault();
-    if (!pendingRating) return;
     const {article, value} = pendingRating;
     const reason = document.getElementById("rating-reason").value.trim();
-    saveRating(article, value, reason);
+    console.log("Rating", article.url, value, reason);
+    const ratings = getRatings();
+    const ratedAt = Math.floor(Date.now() / 1000);
+    ratings[article.url] = {...article, rating: value, ratedAt: ratedAt, ratingReason: reason};
+    // Keep only the newest 200 ratings.
+    const newest = Object.entries(ratings)
+          .sort((a, b) => b[1].ratedAt - a[1].ratedAt)
+          .slice(0, 200);
+    localStorage.setItem("news_rss_ratings", JSON.stringify(Object.fromEntries(newest)));
     document.getElementById("rating-popover").hidePopover();
     notify(`Rated ${article.score} → ${value}`);
-    pendingRating = null;
 }
 
 function onRatingReasonKeydown(event) {
