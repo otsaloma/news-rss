@@ -5,7 +5,7 @@ import Anthropic from "https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.71.2/+es
 const PARAMS = new URLSearchParams(window.location.search);
 
 // Load needed key and token from URL parameters or local storage.
-let ANTHROPIC_API_KEY = PARAMS.get("key") || localStorage.getItem("news_rss_anthropic_api_key");
+const ANTHROPIC_API_KEY = PARAMS.get("key") || localStorage.getItem("news_rss_anthropic_api_key");
 let PROXY_TOKEN = PARAMS.get("token") || localStorage.getItem("news_rss_proxy_token");
 
 let PROXY = "https://ep3tfancwtwxecots3p6txr3ka0xfcrr.lambda-url.eu-north-1.on.aws/";
@@ -15,12 +15,12 @@ if (PARAMS.get("proxy-local")) {
 }
 console.log(`Using proxy ${PROXY}`);
 
-let FEEDS = JSON.parse(localStorage.getItem("news_rss_feeds")) || [
+const FEEDS = JSON.parse(localStorage.getItem("news_rss_feeds")) || [
     "https://www.hs.fi/rss/teasers/etusivu.xml",
     "https://yle.fi/rss/uutiset/paauutiset",
 ];
 
-let JUNK_THRESHOLD = parseInt(localStorage.getItem("news_rss_junk_threshold")) || 25;
+const JUNK_THRESHOLD = parseInt(localStorage.getItem("news_rss_junk_threshold")) || 25;
 
 const MODEL = "claude-opus-5";
 console.log(`Using model ${MODEL}`);
@@ -283,15 +283,10 @@ function onConfigSaveClick(event) {
     const token = document.getElementById("config-token").value.trim();
     const feeds = document.getElementById("config-feeds").value.split("\n").map(x => x.trim()).filter(x => x);
     const junkThreshold = parseInt(document.getElementById("config-junk-threshold").value);
-    ANTHROPIC_API_KEY = key;
-    PROXY_TOKEN = token;
-    FEEDS = feeds;
-    JUNK_THRESHOLD = junkThreshold;
     localStorage.setItem("news_rss_anthropic_api_key", key);
     localStorage.setItem("news_rss_proxy_token", token);
     localStorage.setItem("news_rss_feeds", JSON.stringify(feeds));
     localStorage.setItem("news_rss_junk_threshold", junkThreshold);
-    document.getElementById("config-popover").hidePopover();
     window.location.reload();
 }
 
