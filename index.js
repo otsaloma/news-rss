@@ -84,6 +84,23 @@ function parse(texts) {
         })));
 }
 
+function ask(prompt) {
+    console.log(prompt);
+    const client = new Anthropic({
+        apiKey: ANTHROPIC_API_KEY,
+        dangerouslyAllowBrowser: true
+    });
+    return client.messages.create({
+        model: MODEL,
+        max_tokens: 5000,
+        messages: [{role: "user", content: prompt}],
+    }).then(data => {
+        const content = data.content[0].text.trim();
+        console.log(content);
+        return content;
+    });
+}
+
 function deduplicate(articles) {
     setProgress("deduplicating...");
     // Deduplicate articles to include only one source per event.
@@ -108,18 +125,7 @@ Then on your final line, return a JSON array of indices to KEEP.
 You are not allowed to omit the final JSON array.
 Example: [0, 2, 5, 7]
 `.trim();
-    console.log(prompt);
-    const client = new Anthropic({
-        apiKey: ANTHROPIC_API_KEY,
-        dangerouslyAllowBrowser: true
-    });
-    return client.messages.create({
-        model: MODEL,
-        max_tokens: 5000,
-        messages: [{role: "user", content: prompt}],
-    }).then(data => {
-        const content = data.content[0].text.trim();
-        console.log(content);
+    return ask(prompt).then(content => {
         const matches = [...content.matchAll(/\[[\d,\s]+\]/g)];
         const keep = JSON.parse(matches[matches.length-1]);
         return keep.map(i => articles[i]);
@@ -177,18 +183,7 @@ Then score each article using this exact format (one line per article):
 You are not allowed to use any other format.
 Finally check that you have scored each article.
 `.trim();
-    console.log(prompt);
-    const client = new Anthropic({
-        apiKey: ANTHROPIC_API_KEY,
-        dangerouslyAllowBrowser: true
-    });
-    return client.messages.create({
-        model: MODEL,
-        max_tokens: 5000,
-        messages: [{role: "user", content: prompt}]
-    }).then(data => {
-        const content = data.content[0].text.trim();
-        console.log(content);
+    return ask(prompt).then(content => {
         const scores = [];
         for (const line of content.split("\n")) {
             const match = line.match(/^(\d+)\..+?→\s*(\d+)/);
