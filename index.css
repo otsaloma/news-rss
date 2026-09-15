@@ -203,10 +203,10 @@ body.popover-open a { pointer-events: none; }
   overflow-wrap: break-word;
 }
 
-.article.score-1 h2 { font-size: 18px; line-height: 24px; }
-.article.score-2 h2 { font-size: 26px; line-height: 32px; }
-.article.score-3 h2 { font-size: 36px; line-height: 42px; }
-.article.score-4 h2 { font-size: 46px; line-height: 52px; }
+.article.importance-1 h2 { font-size: 18px; line-height: 24px; }
+.article.importance-2 h2 { font-size: 26px; line-height: 32px; }
+.article.importance-3 h2 { font-size: 36px; line-height: 42px; }
+.article.importance-4 h2 { font-size: 46px; line-height: 52px; }
 
 .article .description {
   margin: 0.5em 0;
@@ -215,7 +215,7 @@ body.popover-open a { pointer-events: none; }
 /* Make the layout tighter by showing only the title
    for the least important, single-column articles.
    But keep descriptions in the junkpile. */
-#grid .article.score-1 .description { display: none; }
+#grid .article.importance-1 .description { display: none; }
 
 .article .meta {
   font-size: 12px;
@@ -246,7 +246,7 @@ body.popover-open a { pointer-events: none; }
   background: var(--color-orange);
 }
 
-.article.muted h2, .article.muted .description {
+#junk-grid .article h2, #junk-grid .article .description {
   opacity: 0.5;
 }
 

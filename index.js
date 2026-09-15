@@ -266,46 +266,39 @@ function onConfigSaveClick(event) {
     window.location.reload();
 }
 
-function render(articles, grid, muted=false) {
+function render(articles, grid) {
     // Render articles in grid like a newspaper front page.
-    grid.innerHTML = "";
+    grid.replaceChildren();
     articles.forEach(article => {
         // Map score 0–100 to importance 1–4 and scale based on that.
         const importance = Math.max(1, Math.min(4, Math.floor(article.score / 20)));
         const size = Math.min(importance, COLUMN_COUNT);
         const cell = document.createElement("div");
-        cell.className = "article";
-        cell.classList.add(`size-${size}`);
-        cell.classList.add(`score-${importance}`);
-        if (muted) cell.classList.add("muted");
+        cell.className = `article size-${size} importance-${importance}`;
         const title = document.createElement("h2");
         const link = document.createElement("a");
         link.href = article.url;
         link.referrerPolicy = "no-referrer";
         link.textContent = article.title;
         link.target = "_blank";
-        title.appendChild(link);
+        title.append(link);
         const description = document.createElement("p");
         description.className = "description";
         description.textContent = article.description;
         const meta = document.createElement("p");
         meta.className = "meta";
-        const date = new Date(article.publishedAt);
-        const time = date.toTimeString().slice(0, 5);
-        meta.appendChild(document.createTextNode(`${article.site} ${time} → ${article.score} `));
+        const time = new Date(article.publishedAt).toTimeString().slice(0, 5);
         const rating = document.createElement("span");
         rating.className = "rating";
         [10, 30, 50, 70, 90].forEach(value => {
             const circle = document.createElement("span");
             circle.className = "rating-circle";
             circle.addEventListener("click", () => showRatingPopover(article, value));
-            rating.appendChild(circle);
+            rating.append(circle);
         });
-        meta.appendChild(rating);
-        cell.appendChild(title);
-        cell.appendChild(description);
-        cell.appendChild(meta);
-        grid.appendChild(cell);
+        meta.append(`${article.site} ${time} → ${article.score} `, rating);
+        cell.append(title, description, meta);
+        grid.append(cell);
     });
 }
 
@@ -317,8 +310,8 @@ function renderAll(articles) {
     const h1 = document.querySelector("h1");
     h1.textContent = `${visible.length} Articles & ${junkpile.length} Hidden`;
     h1.classList.remove("hidden");
-    render(visible, document.getElementById("grid"), false);
-    render(junkpile, document.getElementById("junk-grid"), true);
+    render(visible, document.getElementById("grid"));
+    render(junkpile, document.getElementById("junk-grid"));
     const toggle = document.getElementById("junk-toggle");
     toggle.classList.toggle("hidden", false);
 }
