@@ -24,8 +24,6 @@ html {
 body {
   background-color: var(--color-background);
   color: var(--color-text);
-  font-family: var(--font-family-sans-serif);
-  font-size: var(--font-size-main);
   line-height: 1.5;
   margin: 0;
   padding: 2rem 3rem;
@@ -69,7 +67,6 @@ header div {
 
 #progress {
   margin-top: 1rem;
-  text-align: center;
 }
 
 h1 {
@@ -78,7 +75,6 @@ h1 {
   font-weight: 700;
   margin: 0 0 1rem 0;
   opacity: 0.5;
-  text-align: center;
 }
 
 #toast {
@@ -86,12 +82,10 @@ h1 {
   border-radius: 999px;
   color: white;
   font-size: var(--font-size-small);
-  opacity: 1;
   padding: 0.5rem 1rem;
   position: fixed;
   right: 2rem;
   top: 2rem;
-  transition: opacity 0.3s ease;
   z-index: 1000;
 }
 
@@ -117,10 +111,10 @@ body.popover-open a { pointer-events: none; }
   display: block;
   font-weight: 600;
   margin: 0 0 12px 0;
-  text-align: center;
 }
 
-.popover input {
+.popover input,
+.popover textarea {
   background: inherit;
   border-radius: 999px;
   border: none !important;
@@ -133,30 +127,18 @@ body.popover-open a { pointer-events: none; }
   padding: 12px;
 }
 
+.popover input:focus,
+.popover textarea:focus {
+  outline: 2px solid rgba(0, 0, 0, 0.3) !important;
+}
+
 .popover input[type="number"] {
   text-align: center;
 }
 
-.popover input:focus {
-  outline: 2px solid rgba(0, 0, 0, 0.3) !important;
-}
-
 .popover textarea {
-  background: inherit;
   border-radius: 18px;
-  border: none !important;
-  color: inherit;
-  display: block;
-  font-size: 16px; /* To avoid auto-zoom on mobile Safari */
-  margin: 12px 0 24px 0;
-  min-width: min(400px, 60vw);
-  outline: 2px solid rgba(0, 0, 0, 0.1) !important;
-  padding: 12px;
   resize: vertical;
-}
-
-.popover textarea:focus {
-  outline: 2px solid rgba(0, 0, 0, 0.3) !important;
 }
 
 .popover button {
@@ -189,7 +171,7 @@ body.popover-open a { pointer-events: none; }
 .article {
   max-width: 100%;
   min-width: 0;
-};
+}
 
 .article.size-1 { grid-column: span 1; }
 .article.size-2 { grid-column: span 2; }
@@ -228,7 +210,6 @@ body.popover-open a { pointer-events: none; }
   display: inline-flex;
   gap: 2px;
   margin-left: 6px;
-  opacity: 1;
   vertical-align: -2px;
 }
 
