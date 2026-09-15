@@ -67,25 +67,25 @@ function showError(message) {
 function parse(texts) {
     setProgress("parsing...");
     // Parse feed texts to a single list of articles.
-    return Promise.all(texts.map(text => {
-        const parser = new RSSParser();
-        return parser.parseString(text)
-            .then(feed => feed.items.map(item => ({
+    return Promise.all(texts.map(text => new RSSParser().parseString(text)))
+        .then(feeds => feeds.flatMap(feed => feed.items.map(item => {
+            const description = item.contentSnippet || "";
+            const host = new URL(item.link).hostname;
+            return {
                 // Strip topic prefixes from titles used at hs.fi.
                 // e.g. Lukijan mielipide | Asuntopula hidastaa Helsingin kasvua
                 title: (item.title || "").split("|").pop().trim(),
-                description: item.contentSnippet || "",
+                description: description,
                 // Take the first sentence of the description.
                 // Avoid stopping at the common case of initials like F. M. Dostoevsky.
-                descriptionShort: (item.contentSnippet || "").split(/[^A-ZÅÄÖ][.!?] /)[0],
-                image: item.enclosure?.type?.startsWith("image/") ? item.enclosure.url : "",
-                url: item.link || "",
-                host: new URL(item.link || "").hostname,
+                descriptionShort: description.split(/[^A-ZÅÄÖ][.!?] /)[0],
+                url: item.link,
+                host: host,
                 // Take the second last component of host, e.g. www.hs.fi -> hs
-                site: new URL(item.link || "").hostname.split(".").slice(-2, -1)[0],
+                site: host.split(".").slice(-2, -1)[0],
                 publishedAt: item.isoDate || "",
-            })));
-    })).then(results => results.flat());
+            };
+        })));
 }
 
 function filterByPublishedAt(articles) {
