@@ -25,7 +25,6 @@ const JUNK_THRESHOLD = parseInt(localStorage.getItem("news_rss_junk_threshold"))
 const MODEL = "claude-opus-5";
 console.log(`Using model ${MODEL}`);
 
-const ARTICLE_MAX_AGE = 86400;
 const RATING_SCORES = [10, 30, 50, 70, 90];
 const RATINGS_MAX_COUNT = 200;
 
@@ -86,13 +85,6 @@ function parse(texts) {
                 publishedAt: item.isoDate || "",
             };
         })));
-}
-
-function filterByPublishedAt(articles) {
-    return articles.filter(article => {
-        const date = new Date(article.publishedAt).getTime();
-        return (Date.now() - date) <= ARTICLE_MAX_AGE * 1000;
-    });
 }
 
 function deduplicate(articles) {
@@ -387,25 +379,23 @@ function onClearRatingsClick(event) {
     notify("Ratings cleared!");
 }
 
-function getFeedUrl(url) {
-    // Use our proxy to get around cross-origin limitations.
-    url = encodeURIComponent(url);
-    return `${PROXY}?token=${PROXY_TOKEN}&url=${url}`;
-}
-
-function loadArticles() {
+function onLoadClick(event) {
+    event.preventDefault();
     const header = document.querySelector("header");
     header.classList.toggle("hidden", true);
     const busy = document.getElementById("busy");
     busy.classList.toggle("hidden", false);
     setProgress("fetching...");
-    const feeds = FEEDS.map(getFeedUrl);
-    Promise.all(feeds.map(url => fetch(url).then(response => response.text())))
-        .then(texts => parse(texts))
-        .then(articles => articles.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt)))
-        .then(articles => filterByPublishedAt(articles))
-        .then(articles => deduplicate(articles))
-        .then(articles => score(articles))
+    // Use our proxy to get around cross-origin limitations.
+    const urls = FEEDS.map(url => `${PROXY}?token=${PROXY_TOKEN}&url=${encodeURIComponent(url)}`);
+    Promise.all(urls.map(url => fetch(url).then(response => response.text())))
+        .then(parse)
+        // Keep articles from the last 24 hours, newest first.
+        .then(articles => articles
+              .filter(x => Date.now() - new Date(x.publishedAt) <= 86400 * 1000)
+              .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt)))
+        .then(deduplicate)
+        .then(score)
         .then(articles => {
             sessionStorage.setItem("articles", JSON.stringify(articles));
             renderAll(articles);
@@ -416,11 +406,6 @@ function loadArticles() {
             const e = error.error.error; // :–|
             showError(`Error ${error.status}: ${e.message}`);
         });
-}
-
-function onLoadClick(event) {
-    event.preventDefault();
-    loadArticles();
 }
 
 (function() {
