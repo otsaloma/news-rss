@@ -48,7 +48,7 @@ a:hover {
   border-bottom: 5px solid rgb(from var(--color-orange) r g b / 0.5);
 }
 
-.hidden {
+[hidden] {
   display: none !important;
 }
 

@@ -45,8 +45,8 @@ function connect(id, type, listener) {
 function notify(message) {
     let toast = document.getElementById("toast");
     toast.textContent = message;
-    toast.classList.toggle("hidden", false);
-    setTimeout(() => toast.classList.toggle("hidden", true), 2000);
+    toast.hidden = false;
+    setTimeout(() => { toast.hidden = true; }, 2000);
 }
 
 function setProgress(text) {
@@ -54,10 +54,10 @@ function setProgress(text) {
 }
 
 function showError(message) {
-    document.getElementById("busy").classList.toggle("hidden", true);
+    document.getElementById("busy").hidden = true;
     const h1 = document.querySelector("h1");
     h1.textContent = message;
-    h1.classList.remove("hidden");
+    h1.hidden = false;
 }
 
 function parse(texts) {
@@ -309,20 +309,17 @@ function renderAll(articles) {
     const junkpile = articles.filter(x => x.score <= JUNK_THRESHOLD);
     const h1 = document.querySelector("h1");
     h1.textContent = `${visible.length} Articles & ${junkpile.length} Hidden`;
-    h1.classList.remove("hidden");
+    h1.hidden = false;
     render(visible, document.getElementById("grid"));
     render(junkpile, document.getElementById("junk-grid"));
-    const toggle = document.getElementById("junk-toggle");
-    toggle.classList.toggle("hidden", false);
+    document.getElementById("junk-toggle").hidden = false;
 }
 
 function onJunkToggleClick(event) {
     event.preventDefault();
     const grid = document.getElementById("junk-grid");
-    grid.classList.toggle("hidden");
-    const link = event.target;
-    link.textContent = grid.classList.contains("hidden") ?
-        "show junkpile" : "hide junkpile";
+    grid.hidden = !grid.hidden;
+    event.target.textContent = grid.hidden ? "show junkpile" : "hide junkpile";
 }
 
 function onClearCacheClick(event) {
@@ -340,10 +337,9 @@ function onClearRatingsClick(event) {
 
 function onLoadClick(event) {
     event.preventDefault();
-    const header = document.querySelector("header");
-    header.classList.toggle("hidden", true);
+    document.querySelector("header").hidden = true;
     const busy = document.getElementById("busy");
-    busy.classList.toggle("hidden", false);
+    busy.hidden = false;
     setProgress("fetching...");
     // Use our proxy to get around cross-origin limitations.
     const urls = FEEDS.map(url => `${PROXY}?token=${PROXY_TOKEN}&url=${encodeURIComponent(url)}`);
@@ -358,7 +354,7 @@ function onLoadClick(event) {
         .then(articles => {
             sessionStorage.setItem("articles", JSON.stringify(articles));
             renderAll(articles);
-            busy.classList.toggle("hidden", true);
+            busy.hidden = true;
         })
         .catch(error => {
             console.error(error.error);
@@ -389,7 +385,6 @@ function onLoadClick(event) {
         renderAll(articles);
     } else {
         // Show load button.
-        const header = document.querySelector("header");
-        header.classList.toggle("hidden", false);
+        document.querySelector("header").hidden = false;
     }
 })();
