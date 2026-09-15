@@ -1,5 +1,4 @@
-News Aggregator Front Page
-==========================
+# News Aggregator Front Page
 
 News RSS is a client-side web app to fetch news article links from
 multiple RSS feeds, filter and score them using using AI/LLM and
@@ -42,13 +41,13 @@ See `Makefile` and `index.js` if something doesn't work ;–)
 
 ## Tradeoffs
 
-* Articles are rated 1–5 by the user, which is mapped to scores 10, 30,
+- Articles are rated 1–5 by the user, which is mapped to scores 10, 30,
   50, 70 and 90, with the full range being 0–100. A simpler alternative
   would be upvote/downvote, which could under the hood do +20/-20
   against the score from the LLM. The former gives faster convergence,
   the latter a lighter UX for rating.
 
-* After clicking a rating, the user is asked for a reason. For a lighter
+- After clicking a rating, the user is asked for a reason. For a lighter
   UX, you could skip that step. Consider a news article about a popular
   musician going to drug rehab. A user hits a rating, is it due to
   "music", "celebrity gossip" or "drugs"? The LLM will simply guess if a
