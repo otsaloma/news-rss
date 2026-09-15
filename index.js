@@ -348,9 +348,10 @@ function onLoadClick(event) {
             busy.hidden = true;
         })
         .catch(error => {
-            console.error(error.error);
-            const e = error.error.error; // :–|
-            showError(`Error ${error.status}: ${e.message}`);
+            console.error(error);
+            // API errors carry a readable message in the response body.
+            const message = error.error?.error?.message ?? error.message;
+            showError(error.status ? `Error ${error.status}: ${message}` : `Error: ${message}`);
         });
 }
 
