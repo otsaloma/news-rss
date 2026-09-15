@@ -25,8 +25,6 @@ const JUNK_THRESHOLD = parseInt(localStorage.getItem("news_rss_junk_threshold"))
 const MODEL = "claude-opus-5";
 console.log(`Using model ${MODEL}`);
 
-const RATING_SCORES = [10, 30, 50, 70, 90];
-
 function getColumnCount() {
     if (window.innerWidth <  480) return 1;
     if (window.innerWidth <  768) return 2;
@@ -268,29 +266,6 @@ function onConfigSaveClick(event) {
     window.location.reload();
 }
 
-function onRatingHover(circles, index) {
-    circles.forEach((x, i) => x.classList.toggle("filled", i <= index));
-}
-
-function onRatingLeave(circles) {
-    circles.forEach(x => x.classList.remove("filled"));
-}
-
-function onRatingClick(event, article, rating) {
-    event.preventDefault();
-    const ratingValue = RATING_SCORES[rating-1];
-    showRatingPopover(article, ratingValue);
-}
-
-function createRatingCircle(circles, index, article) {
-    const circle = document.createElement("span");
-    circle.className = "rating-circle";
-    circle.addEventListener("mouseenter", () => onRatingHover(circles, index));
-    circle.addEventListener("mouseleave", () => onRatingLeave(circles));
-    circle.addEventListener("click", event => onRatingClick(event, article, index + 1));
-    return circle;
-}
-
 function render(articles, grid, muted=false) {
     // Render articles in grid like a newspaper front page.
     grid.innerHTML = "";
@@ -320,12 +295,12 @@ function render(articles, grid, muted=false) {
         meta.appendChild(document.createTextNode(`${article.site} ${time} → ${article.score} `));
         const rating = document.createElement("span");
         rating.className = "rating";
-        const circles = [];
-        for (let i = 0; i < 5; i++) {
-            const circle = createRatingCircle(circles, i, article);
-            circles.push(circle);
+        [10, 30, 50, 70, 90].forEach(value => {
+            const circle = document.createElement("span");
+            circle.className = "rating-circle";
+            circle.addEventListener("click", () => showRatingPopover(article, value));
             rating.appendChild(circle);
-        }
+        });
         meta.appendChild(rating);
         cell.appendChild(title);
         cell.appendChild(description);

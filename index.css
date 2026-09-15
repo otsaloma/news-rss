@@ -240,7 +240,9 @@ body.popover-open a { pointer-events: none; }
   width: 12px;
 }
 
-.rating-circle.filled {
+/* Fill the hovered circle and all circles before it. */
+.rating-circle:hover,
+.rating-circle:has(~ .rating-circle:hover) {
   background: var(--color-orange);
 }
 
