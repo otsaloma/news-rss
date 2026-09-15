@@ -204,19 +204,14 @@ Finally check that you have scored each article.
         for (const line of content.split("\n")) {
             const match = line.match(/^(\d+)\..+?→\s*(\d+)/);
             if (!match) continue;
-            const index = parseInt(match[1]) - 1;
-            const score = parseInt(match[2]);
-            if (score < 0) continue;
-            if (score > 100) continue;
-            scores[index] = score;
+            const value = parseInt(match[2]);
+            if (value > 100) continue;
+            scores[parseInt(match[1]) - 1] = value;
         }
         return articles.map((article, i) => {
-            let score = scores[i];
-            if (score === undefined) {
+            if (scores[i] === undefined)
                 console.log(`No score for article ${i+1}, using 33`);
-                score = 33;
-            }
-            return {...article, score: score};
+            return {...article, score: scores[i] ?? 33};
         });
     });
 }
