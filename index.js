@@ -42,10 +42,8 @@ document.documentElement.style.setProperty("--column-count", COLUMN_COUNT);
 // Pending rating waiting for popover input.
 let pendingRating = null;
 
-function connect(target, type, listener) {
-    if (typeof target === "string")
-        target = document.getElementById(target);
-    target.addEventListener(type, listener);
+function connect(id, type, listener) {
+    document.getElementById(id).addEventListener(type, listener);
 }
 
 function notify(message) {
