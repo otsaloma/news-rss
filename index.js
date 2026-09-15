@@ -95,7 +95,7 @@ function ask(prompt) {
         max_tokens: 5000,
         messages: [{role: "user", content: prompt}],
     }).then(data => {
-        const content = data.content[0].text.trim();
+        const content = data.content.find(x => x.type === "text").text.trim();
         console.log(content);
         return content;
     });
