@@ -1,4 +1,4 @@
-.claude
+.claude/settings.local.json
 .env
 .envrc
 __pycache__
