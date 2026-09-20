@@ -1,11 +1,9 @@
 // -*- coding: utf-8-unix -*-
 
-import Anthropic from "https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.71.2/+esm";
-
 const PARAMS = new URLSearchParams(window.location.search);
 
 // Load needed key and token from URL parameters or local storage.
-const ANTHROPIC_API_KEY = PARAMS.get("key") || localStorage.getItem("news_rss_anthropic_api_key");
+const OPENROUTER_API_KEY = PARAMS.get("key") || localStorage.getItem("news_rss_openrouter_api_key");
 let PROXY_TOKEN = PARAMS.get("token") || localStorage.getItem("news_rss_proxy_token");
 
 let PROXY = "https://ep3tfancwtwxecots3p6txr3ka0xfcrr.lambda-url.eu-north-1.on.aws/";
@@ -22,7 +20,7 @@ const FEEDS = JSON.parse(localStorage.getItem("news_rss_feeds")) || [
 
 const JUNK_THRESHOLD = parseInt(localStorage.getItem("news_rss_junk_threshold")) || 25;
 
-const MODEL = "claude-opus-5";
+const MODEL = "google/gemini-3.8-flash";
 console.log(`Using model ${MODEL}`);
 
 function getColumnCount() {
@@ -86,16 +84,20 @@ function parse(texts) {
 
 function ask(prompt) {
     console.log(prompt);
-    const client = new Anthropic({
-        apiKey: ANTHROPIC_API_KEY,
-        dangerouslyAllowBrowser: true
-    });
-    return client.messages.create({
-        model: MODEL,
-        max_tokens: 5000,
-        messages: [{role: "user", content: prompt}],
-    }).then(data => {
-        const content = data.content.find(x => x.type === "text").text.trim();
+    return fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+            "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            model: MODEL,
+            messages: [{role: "user", content: prompt}],
+        }),
+    }).then(response => response.json()).then(data => {
+        if (data.error)
+            throw new Error(data.error.message);
+        const content = data.choices[0].message.content.trim();
         console.log(content);
         return content;
     });
@@ -236,7 +238,7 @@ function onPopoverToggle(event) {
 function showConfigPopover(event) {
     event && event.preventDefault();
     const popover = document.getElementById("config-popover");
-    document.getElementById("config-key").value = ANTHROPIC_API_KEY || "";
+    document.getElementById("config-key").value = OPENROUTER_API_KEY || "";
     document.getElementById("config-token").value = PROXY_TOKEN || "";
     document.getElementById("config-feeds").value = FEEDS.join("\n");
     document.getElementById("config-junk-threshold").value = JUNK_THRESHOLD;
@@ -250,7 +252,7 @@ function onConfigSubmit(event) {
     const token = document.getElementById("config-token").value.trim();
     const feeds = document.getElementById("config-feeds").value.split("\n").map(x => x.trim()).filter(x => x);
     const junkThreshold = parseInt(document.getElementById("config-junk-threshold").value);
-    localStorage.setItem("news_rss_anthropic_api_key", key);
+    localStorage.setItem("news_rss_openrouter_api_key", key);
     localStorage.setItem("news_rss_proxy_token", token);
     localStorage.setItem("news_rss_feeds", JSON.stringify(feeds));
     localStorage.setItem("news_rss_junk_threshold", junkThreshold);
@@ -349,9 +351,7 @@ function onLoadClick(event) {
         })
         .catch(error => {
             console.error(error);
-            // API errors carry a readable message in the response body.
-            const message = error.error?.error?.message ?? error.message;
-            showError(error.status ? `Error ${error.status}: ${message}` : `Error: ${message}`);
+            showError(`Error: ${error.message}`);
         });
 }
 
@@ -365,7 +365,7 @@ function onLoadClick(event) {
     connect("load", "click", onLoadClick);
     connect("rating-popover", "submit", onRatingSubmit);
     connect("rating-popover", "toggle", onPopoverToggle);
-    if (!ANTHROPIC_API_KEY || !PROXY_TOKEN) {
+    if (!OPENROUTER_API_KEY || !PROXY_TOKEN) {
         // Prompt for credentials on first use.
         showConfigPopover();
     } else if (sessionStorage.getItem("articles")) {

@@ -21,7 +21,7 @@ Initial configuration:
 
 ## Getting Started
 
-You need an Anthropic API key from <https://platform.claude.com/settings/keys>
+You need an OpenRouter API key from <https://openrouter.ai/workspaces/default/keys>
 
 1. Start the local proxy server
 
