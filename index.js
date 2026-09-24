@@ -97,7 +97,12 @@ function ask(prompt) {
     }).then(response => response.json()).then(data => {
         if (data.error)
             throw new Error(data.error.message);
-        const content = data.choices[0].message.content.trim();
+        const choice = data.choices[0];
+        if (!choice.message.content) {
+            console.log(data);
+            throw new Error(`No content in response (finish reason: ${choice.native_finish_reason || choice.finish_reason})`);
+        }
+        const content = choice.message.content.trim();
         console.log(content);
         return content;
     });
