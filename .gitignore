@@ -6,4 +6,4 @@ html
 lambda
 lambda.zip
 requirements-lambda.txt
-venv
+.venv

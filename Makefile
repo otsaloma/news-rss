@@ -1,10 +1,9 @@
 # -*- coding: utf-8-unix -*-
 
-PYTHON = python3.12
 VERSION = `date +%s`
 
 check:
-	flake8 *.py
+	uv run flake8 *.py
 	oxlint --deny-warnings *.js
 
 clean:
@@ -18,15 +17,15 @@ clean:
 # https://aws.amazon.com/premiumsupport/knowledge-center/lambda-python-package-compatible/
 dist-lambda:
 	$(MAKE) check clean
-	cat requirements.txt \
-	| grep -v flake8 \
-	> requirements-lambda.txt
-	pip3 install \
-	--platform manylinux2014_x86_64 \
-	--target lambda \
-	--implementation cp \
+	uv export \
+	--no-dev \
+	--no-emit-project \
+	--output-file requirements-lambda.txt
+	uv pip install \
+	--python-platform x86_64-manylinux_2_34 \
 	--python-version 3.12 \
-	--only-binary=:all: \
+	--target lambda \
+	--only-binary :all: \
 	-r requirements-lambda.txt
 	rm -rf lambda/bin
 	find lambda -name "__pycache__" -prune -exec rm -rf {} \;
@@ -67,16 +66,9 @@ deploy-html:
 	--cache-control "public, max-age=86400"
 
 run:
-	$(PYTHON) -m http.server
+	uv run python -m http.server
 
 run-proxy:
-	$(PYTHON) proxy-local.py
+	uv run python proxy-local.py
 
-venv:
-	rm -rf venv
-	$(PYTHON) -m venv venv
-	. venv/bin/activate && \
-	  pip install -U pip setuptools wheel && \
-	  pip install -r requirements.txt
-
-.PHONY: check clean dist-lambda deploy-lambda dist-html deploy-html run run-proxy venv
+.PHONY: check clean dist-lambda deploy-lambda dist-html deploy-html run run-proxy
