@@ -98,13 +98,8 @@ body:has(:popover-open) a { pointer-events: none; }
   border-radius: 36px;
   border: none;
   color: var(--color-text);
-  left: 50%;
-  margin: 0;
   max-width: 85vw;
   padding: 2rem;
-  position: fixed;
-  top: 50%;
-  transform: translate(-50%, -50%);
 }
 
 .popover label {
