@@ -82,7 +82,7 @@ async function parse(texts) {
     }));
 }
 
-async function ask(prompt) {
+async function ask(prompt, schema) {
     console.log(prompt);
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
@@ -93,6 +93,10 @@ async function ask(prompt) {
         body: JSON.stringify({
             model: MODEL,
             messages: [{role: "user", content: prompt}],
+            response_format: {
+                type: "json_schema",
+                json_schema: {name: "response", strict: true, schema: schema},
+            },
         }),
     });
     const data = await response.json();
@@ -103,9 +107,8 @@ async function ask(prompt) {
         console.log(data);
         throw new Error(`No content in response (finish reason: ${choice.native_finish_reason || choice.finish_reason})`);
     }
-    const content = choice.message.content.trim();
-    console.log(content);
-    return content;
+    console.log(choice.message.content);
+    return JSON.parse(choice.message.content);
 }
 
 async function deduplicate(articles) {
@@ -119,7 +122,6 @@ async function deduplicate(articles) {
     const prompt = `
 You are given a list of news articles.
 Identify which articles are about the same news event/story (duplicates).
-Return a JSON array of indices to KEEP (one article from each group of duplicates).
 Of duplicates, prefer to keep articles from known free public services such as yle.fi.
 
 Articles:
@@ -128,13 +130,17 @@ ${dump}
 """
 
 Think step by step and briefly state your reasoning.
-Then on your final line, return a JSON array of indices to KEEP.
-You are not allowed to omit the final JSON array.
-Example: [0, 2, 5, 7]
+Then list the indices of articles to KEEP (one article from each group of duplicates).
 `.trim();
-    const content = await ask(prompt);
-    const matches = [...content.matchAll(/\[[\d,\s]+\]/g)];
-    const keep = JSON.parse(matches[matches.length-1]);
+    const {keep} = await ask(prompt, {
+        type: "object",
+        properties: {
+            reasoning: {type: "string"},
+            keep: {type: "array", items: {type: "integer"}},
+        },
+        required: ["reasoning", "keep"],
+        additionalProperties: false,
+    });
     return keep.map(i => articles[i]);
 }
 
@@ -179,25 +185,32 @@ ${dump}
 """
 
 First summarize the patterns you see in the previously rated examples.
-Then score each article using this exact format (one line per article):
-"""
-1. brief reasoning → score
-2. brief reasoning → score
-3. brief reasoning → score
-...and so on for all ${articles.length} articles.
-"""
-You are not allowed to use any other format.
-Finally check that you have scored each article.
+Then score each of the ${articles.length} articles with brief reasoning.
 `.trim();
-    const content = await ask(prompt);
+    const response = await ask(prompt, {
+        type: "object",
+        properties: {
+            patterns: {type: "string"},
+            scores: {
+                type: "array",
+                items: {
+                    type: "object",
+                    properties: {
+                        index: {type: "integer"},
+                        reasoning: {type: "string"},
+                        score: {type: "integer", minimum: 0, maximum: 100},
+                    },
+                    required: ["index", "reasoning", "score"],
+                    additionalProperties: false,
+                },
+            },
+        },
+        required: ["patterns", "scores"],
+        additionalProperties: false,
+    });
     const scores = [];
-    for (const line of content.split("\n")) {
-        const match = line.match(/^(\d+)\..+?→\s*(\d+)/);
-        if (!match) continue;
-        const value = parseInt(match[2]);
-        if (value > 100) continue;
-        scores[parseInt(match[1]) - 1] = value;
-    }
+    for (const x of response.scores)
+        scores[x.index - 1] = x.score;
     return articles.map((article, i) => {
         if (scores[i] === undefined)
             console.log(`No score for article ${i+1}, using 33`);
