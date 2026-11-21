@@ -58,33 +58,33 @@ function showError(message) {
     h1.hidden = false;
 }
 
-function parse(texts) {
+async function parse(texts) {
     setProgress("parsing...");
     // Parse feed texts to a single list of articles.
-    return Promise.all(texts.map(text => new RSSParser().parseString(text)))
-        .then(feeds => feeds.flatMap(feed => feed.items.map(item => {
-            const description = item.contentSnippet || "";
-            const host = new URL(item.link).hostname;
-            return {
-                // Strip topic prefixes from titles used at hs.fi.
-                // e.g. Lukijan mielipide | Asuntopula hidastaa Helsingin kasvua
-                title: (item.title || "").split("|").pop().trim(),
-                description: description,
-                // Take the first sentence of the description.
-                // Avoid stopping at the common case of initials like F. M. Dostoevsky.
-                descriptionShort: description.split(/[^A-ZÅÄÖ][.!?] /)[0],
-                url: item.link,
-                host: host,
-                // Take the second last component of host, e.g. www.hs.fi -> hs
-                site: host.split(".").slice(-2, -1)[0],
-                publishedAt: item.isoDate || "",
-            };
-        })));
+    const feeds = await Promise.all(texts.map(text => new RSSParser().parseString(text)));
+    return feeds.flatMap(feed => feed.items.map(item => {
+        const description = item.contentSnippet || "";
+        const host = new URL(item.link).hostname;
+        return {
+            // Strip topic prefixes from titles used at hs.fi.
+            // e.g. Lukijan mielipide | Asuntopula hidastaa Helsingin kasvua
+            title: (item.title || "").split("|").pop().trim(),
+            description: description,
+            // Take the first sentence of the description.
+            // Avoid stopping at the common case of initials like F. M. Dostoevsky.
+            descriptionShort: description.split(/[^A-ZÅÄÖ][.!?] /)[0],
+            url: item.link,
+            host: host,
+            // Take the second last component of host, e.g. www.hs.fi -> hs
+            site: host.split(".").slice(-2, -1)[0],
+            publishedAt: item.isoDate || "",
+        };
+    }));
 }
 
-function ask(prompt) {
+async function ask(prompt) {
     console.log(prompt);
-    return fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
             "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
@@ -94,25 +94,25 @@ function ask(prompt) {
             model: MODEL,
             messages: [{role: "user", content: prompt}],
         }),
-    }).then(response => response.json()).then(data => {
-        if (data.error)
-            throw new Error(data.error.message);
-        const choice = data.choices[0];
-        if (!choice.message.content) {
-            console.log(data);
-            throw new Error(`No content in response (finish reason: ${choice.native_finish_reason || choice.finish_reason})`);
-        }
-        const content = choice.message.content.trim();
-        console.log(content);
-        return content;
     });
+    const data = await response.json();
+    if (data.error)
+        throw new Error(data.error.message);
+    const choice = data.choices[0];
+    if (!choice.message.content) {
+        console.log(data);
+        throw new Error(`No content in response (finish reason: ${choice.native_finish_reason || choice.finish_reason})`);
+    }
+    const content = choice.message.content.trim();
+    console.log(content);
+    return content;
 }
 
-function deduplicate(articles) {
+async function deduplicate(articles) {
     setProgress("deduplicating...");
     // Deduplicate articles to include only one source per event.
     if (articles.length < 2)
-        return Promise.resolve(articles);
+        return articles;
     const dump = articles.map((article, i) =>
         `${i}. ${article.title} — ${article.descriptionShort} (${article.host})`
     ).join("\n");
@@ -132,22 +132,21 @@ Then on your final line, return a JSON array of indices to KEEP.
 You are not allowed to omit the final JSON array.
 Example: [0, 2, 5, 7]
 `.trim();
-    return ask(prompt).then(content => {
-        const matches = [...content.matchAll(/\[[\d,\s]+\]/g)];
-        const keep = JSON.parse(matches[matches.length-1]);
-        return keep.map(i => articles[i]);
-    });
+    const content = await ask(prompt);
+    const matches = [...content.matchAll(/\[[\d,\s]+\]/g)];
+    const keep = JSON.parse(matches[matches.length-1]);
+    return keep.map(i => articles[i]);
 }
 
 function getRatings() {
     return JSON.parse(localStorage.getItem("news_rss_ratings") || "{}");
 }
 
-function score(articles) {
+async function score(articles) {
     setProgress("scoring...");
     // Assign an importance score (0–100) for each of articles.
     if (articles.length === 0)
-        return Promise.resolve(articles);
+        return articles;
     const dump = articles.map((article, i) =>
         `${i+1}. ${article.title} — ${article.descriptionShort}`
     ).join("\n");
@@ -190,20 +189,19 @@ Then score each article using this exact format (one line per article):
 You are not allowed to use any other format.
 Finally check that you have scored each article.
 `.trim();
-    return ask(prompt).then(content => {
-        const scores = [];
-        for (const line of content.split("\n")) {
-            const match = line.match(/^(\d+)\..+?→\s*(\d+)/);
-            if (!match) continue;
-            const value = parseInt(match[2]);
-            if (value > 100) continue;
-            scores[parseInt(match[1]) - 1] = value;
-        }
-        return articles.map((article, i) => {
-            if (scores[i] === undefined)
-                console.log(`No score for article ${i+1}, using 33`);
-            return {...article, score: scores[i] ?? 33};
-        });
+    const content = await ask(prompt);
+    const scores = [];
+    for (const line of content.split("\n")) {
+        const match = line.match(/^(\d+)\..+?→\s*(\d+)/);
+        if (!match) continue;
+        const value = parseInt(match[2]);
+        if (value > 100) continue;
+        scores[parseInt(match[1]) - 1] = value;
+    }
+    return articles.map((article, i) => {
+        if (scores[i] === undefined)
+            console.log(`No score for article ${i+1}, using 33`);
+        return {...article, score: scores[i] ?? 33};
     });
 }
 
@@ -241,7 +239,7 @@ function onPopoverToggle(event) {
 }
 
 function showConfigPopover(event) {
-    event && event.preventDefault();
+    event?.preventDefault();
     const popover = document.getElementById("config-popover");
     document.getElementById("config-key").value = OPENROUTER_API_KEY || "";
     document.getElementById("config-token").value = PROXY_TOKEN || "";
@@ -333,7 +331,7 @@ function onClearRatingsClick(event) {
     notify("Ratings cleared!");
 }
 
-function onLoadClick(event) {
+async function onLoadClick(event) {
     event.preventDefault();
     document.querySelector("header").hidden = true;
     const busy = document.getElementById("busy");
@@ -341,46 +339,43 @@ function onLoadClick(event) {
     setProgress("fetching...");
     // Use our proxy to get around cross-origin limitations.
     const urls = FEEDS.map(url => `${PROXY}?token=${PROXY_TOKEN}&url=${encodeURIComponent(url)}`);
-    Promise.all(urls.map(url => fetch(url).then(response => response.text())))
-        .then(parse)
+    try {
+        const texts = await Promise.all(urls.map(async url => (await fetch(url)).text()));
+        let articles = await parse(texts);
         // Keep articles from the last 24 hours, newest first.
-        .then(articles => articles
-              .filter(x => Date.now() - new Date(x.publishedAt) <= 86400 * 1000)
-              .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt)))
-        .then(deduplicate)
-        .then(score)
-        .then(articles => {
-            sessionStorage.setItem("articles", JSON.stringify(articles));
-            renderAll(articles);
-            busy.hidden = true;
-        })
-        .catch(error => {
-            console.error(error);
-            showError(`Error: ${error.message}`);
-        });
+        articles = articles
+            .filter(x => Date.now() - new Date(x.publishedAt) <= 86400 * 1000)
+            .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+        articles = await deduplicate(articles);
+        articles = await score(articles);
+        sessionStorage.setItem("articles", JSON.stringify(articles));
+        renderAll(articles);
+        busy.hidden = true;
+    } catch (error) {
+        console.error(error);
+        showError(`Error: ${error.message}`);
+    }
 }
 
-(function() {
-    connect("clear-cache", "click", onClearCacheClick);
-    connect("clear-ratings", "click", onClearRatingsClick);
-    connect("config-popover", "submit", onConfigSubmit);
-    connect("config-popover", "toggle", onPopoverToggle);
-    connect("edit-settings", "click", showConfigPopover);
-    connect("junk-toggle", "click", onJunkToggleClick);
-    connect("load", "click", onLoadClick);
-    connect("rating-popover", "submit", onRatingSubmit);
-    connect("rating-popover", "toggle", onPopoverToggle);
-    if (!OPENROUTER_API_KEY || !PROXY_TOKEN) {
-        // Prompt for credentials on first use.
-        showConfigPopover();
-    } else if (sessionStorage.getItem("articles")) {
-        // Render articles from cache.
-        const cached = sessionStorage.getItem("articles");
-        console.log("Loading articles from cache...");
-        const articles = JSON.parse(cached);
-        renderAll(articles);
-    } else {
-        // Show load button.
-        document.querySelector("header").hidden = false;
-    }
-})();
+connect("clear-cache", "click", onClearCacheClick);
+connect("clear-ratings", "click", onClearRatingsClick);
+connect("config-popover", "submit", onConfigSubmit);
+connect("config-popover", "toggle", onPopoverToggle);
+connect("edit-settings", "click", showConfigPopover);
+connect("junk-toggle", "click", onJunkToggleClick);
+connect("load", "click", onLoadClick);
+connect("rating-popover", "submit", onRatingSubmit);
+connect("rating-popover", "toggle", onPopoverToggle);
+if (!OPENROUTER_API_KEY || !PROXY_TOKEN) {
+    // Prompt for credentials on first use.
+    showConfigPopover();
+} else if (sessionStorage.getItem("articles")) {
+    // Render articles from cache.
+    const cached = sessionStorage.getItem("articles");
+    console.log("Loading articles from cache...");
+    const articles = JSON.parse(cached);
+    renderAll(articles);
+} else {
+    // Show load button.
+    document.querySelector("header").hidden = false;
+}
