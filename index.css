@@ -91,7 +91,7 @@ h1 {
 
 /* Disable body while popover is open. */
 .popover::backdrop { background: rgb(from var(--color-text) r g b / 0.5); }
-body.popover-open a { pointer-events: none; }
+body:has(:popover-open) a { pointer-events: none; }
 
 .popover {
   background: white;

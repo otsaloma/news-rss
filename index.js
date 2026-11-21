@@ -247,10 +247,6 @@ function onRatingSubmit(event) {
     notify(`Rated ${article.score} → ${value}`);
 }
 
-function onPopoverToggle(event) {
-    document.body.classList.toggle("popover-open", event.newState === "open");
-}
-
 function showConfigPopover(event) {
     event?.preventDefault();
     const popover = document.getElementById("config-popover");
@@ -373,12 +369,10 @@ async function onLoadClick(event) {
 connect("clear-cache", "click", onClearCacheClick);
 connect("clear-ratings", "click", onClearRatingsClick);
 connect("config-popover", "submit", onConfigSubmit);
-connect("config-popover", "toggle", onPopoverToggle);
 connect("edit-settings", "click", showConfigPopover);
 connect("junk-toggle", "click", onJunkToggleClick);
 connect("load", "click", onLoadClick);
 connect("rating-popover", "submit", onRatingSubmit);
-connect("rating-popover", "toggle", onPopoverToggle);
 if (!OPENROUTER_API_KEY || !PROXY_TOKEN) {
     // Prompt for credentials on first use.
     showConfigPopover();
