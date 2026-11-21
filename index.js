@@ -20,7 +20,7 @@ const FEEDS = JSON.parse(localStorage.getItem("news_rss_feeds")) || [
 
 const JUNK_THRESHOLD = parseInt(localStorage.getItem("news_rss_junk_threshold")) || 25;
 
-const MODEL = "google/gemini-3.8-flash";
+const MODEL = "google/gemini-4-hydrogen";
 console.log(`Using model ${MODEL}`);
 
 function getColumnCount() {
