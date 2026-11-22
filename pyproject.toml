@@ -3,10 +3,10 @@ name = "news-rss"
 version = "0.0.0"
 requires-python = ">=3.12"
 dependencies = [
-    "requests==2.32.5",
+    "requests>=2.32.5",
 ]
 
 [dependency-groups]
 dev = [
-    "flake8==7.3.0",
+    "flake8>=7.3.0",
 ]
